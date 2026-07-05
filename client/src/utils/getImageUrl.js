@@ -1,6 +1,6 @@
-const BASE_URL = import.meta.env.VITE_BASE_URL;
+const IMAGE_URL = import.meta.env.VITE_IMAGE_URL;
 
 export const getImageUrl = (path) => {
   if (!path) return "";
-  return `${BASE_URL}${path}`;
+  return `${IMAGE_URL}${path}`;
 };
