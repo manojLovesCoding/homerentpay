@@ -1,6 +1,12 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../../api/axios.js";
 
 const AddProperty = () => {
+  const navigate = useNavigate();
+
+  const [loading, setLoading] = useState(false);
+
   const [formData, setFormData] = useState({
     title: "",
     address: "",
@@ -10,102 +16,119 @@ const AddProperty = () => {
   });
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const handleFileChange = (e) => {
-    setFormData({ ...formData, image: e.target.files[0] });
+    setFormData({
+      ...formData,
+      image: e.target.files[0],
+    });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
-    // API call later here
+    setLoading(true);
+
+    try {
+      const data = new FormData();
+      data.append("title", formData.title);
+      data.append("address", formData.address);
+      data.append("city", formData.city);
+      data.append("rent", formData.rent);
+      data.append("image", formData.image);
+
+      const token = localStorage.getItem("token");
+
+      const res = await api.post("/property/add", data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      alert("Property added successfully");
+
+      console.log(res.data);
+
+      // reset form
+      setFormData({
+        title: "",
+        address: "",
+        city: "",
+        rent: "",
+        image: null,
+      });
+
+      // redirect
+      navigate("/landlord");
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to add property");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="p-6">
-      <div className="max-w-xl mx-auto bg-white shadow-md rounded-xl p-6">
+      <form onSubmit={handleSubmit} className="space-y-4">
 
-        <h1 className="text-2xl font-bold text-blue-600 mb-6">
-          Add Property
-        </h1>
+        <input
+          name="title"
+          value={formData.title}
+          onChange={handleChange}
+          placeholder="Title"
+          className="w-full border p-2"
+          required
+        />
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <input
+          name="address"
+          value={formData.address}
+          onChange={handleChange}
+          placeholder="Address"
+          className="w-full border p-2"
+          required
+        />
 
-          {/* Title */}
-          <div>
-            <label className="block text-gray-600 mb-1">Title</label>
-            <input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-              placeholder="e.g. Green Residency"
-            />
-          </div>
+        <input
+          name="city"
+          value={formData.city}
+          onChange={handleChange}
+          placeholder="City"
+          className="w-full border p-2"
+          required
+        />
 
-          {/* Address */}
-          <div>
-            <label className="block text-gray-600 mb-1">Address</label>
-            <input
-              type="text"
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-              placeholder="Full address"
-            />
-          </div>
+        <input
+          name="rent"
+          value={formData.rent}
+          onChange={handleChange}
+          type="number"
+          placeholder="Rent"
+          className="w-full border p-2"
+          required
+        />
 
-          {/* City */}
-          <div>
-            <label className="block text-gray-600 mb-1">City</label>
-            <input
-              type="text"
-              name="city"
-              value={formData.city}
-              onChange={handleChange}
-              className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-              placeholder="e.g. Chennai"
-            />
-          </div>
+        <input
+          type="file"
+          onChange={handleFileChange}
+          className="w-full border p-2"
+          accept="image/*"
+        />
 
-          {/* Rent */}
-          <div>
-            <label className="block text-gray-600 mb-1">Rent Amount</label>
-            <input
-              type="number"
-              name="rent"
-              value={formData.rent}
-              onChange={handleChange}
-              className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-              placeholder="e.g. 15000"
-            />
-          </div>
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-blue-600 text-white py-2 disabled:opacity-50"
+        >
+          {loading ? "Submitting..." : "Submit"}
+        </button>
 
-          {/* Image */}
-          <div>
-            <label className="block text-gray-600 mb-1">Upload Image</label>
-            <input
-              type="file"
-              onChange={handleFileChange}
-              className="w-full border p-2 rounded-lg"
-            />
-          </div>
-
-          {/* Submit */}
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
-          >
-            Submit
-          </button>
-
-        </form>
-      </div>
+      </form>
     </div>
   );
 };

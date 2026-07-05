@@ -2,7 +2,11 @@ import Property from "../models/Property.js";
 
 export const addProperty = async (req, res) => {
   try {
-    const { title, address, city, rent, image } = req.body;
+    const { title, address, city, rent } = req.body;
+
+    const image = req.file
+      ? `/uploads/${req.file.filename}`
+      : null;
 
     const property = await Property.create({
       title,
