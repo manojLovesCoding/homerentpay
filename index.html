@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MERN Home Rent Platform Roadmap</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f4f4f4;
+        margin: 20px;
+        line-height: 1.6;
+    }
+    .container {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        max-width: 900px;
+        margin: auto;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        white-space: pre-wrap;
+    }
+    h1 {
+        text-align: center;
+        color: #333;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h1>HOME RENT PAYMENT PLATFORM (MERN STACK ROADMAP)</h1>
+
+PHASE 1: MVP DEFINITION
+-----------------------
+
+Users:
+- Tenant
+- Landlord
+- Admin
+
+Features:
+
+Tenant:
+- Register/Login
+- View rented property
+- View monthly rent
+- Pay rent
+- Download payment receipt
+- View payment history
+
+Landlord:
+- Register/Login
+- Add properties
+- Assign tenants
+- View rent payments
+- Generate reports
+
+Admin:
+- Manage users
+- Manage properties
+- Verify landlords
+- View analytics
+
+
+PHASE 2: MERN TECH STACK
+------------------------
+
+Frontend:
+- React
+- React Router
+- Axios
+- Tailwind CSS
+- React Hook Form
+- Context API / Redux Toolkit
+
+Backend:
+- Node.js
+- Express.js
+- MongoDB
+- Mongoose
+
+Authentication:
+- JWT
+- bcrypt
+
+Payments:
+- Stripe (International)
+OR
+- Razorpay (India)
+
+File Storage:
+- Cloudinary
+
+
+PHASE 3: DATABASE DESIGN
+------------------------
+
+User:
+{
+  name,
+  email,
+  password,
+  role,
+  phone,
+  createdAt
+}
+
+Property:
+{
+  title,
+  address,
+  city,
+  rentAmount,
+  landlordId,
+  image,
+  status
+}
+
+Tenant Assignment:
+{
+  tenantId,
+  propertyId,
+  moveInDate,
+  dueDate
+}
+
+Payment:
+{
+  tenantId,
+  landlordId,
+  propertyId,
+  amount,
+  month,
+  paymentStatus,
+  paymentMethod,
+  transactionId,
+  paidAt
+}
+
+Notification:
+{
+  userId,
+  message,
+  read,
+  createdAt
+}
+
+
+PHASE 4: FOLDER STRUCTURE
+-------------------------
+
+home-rent-app/
+  client/
+    src/
+      components/
+      pages/
+      hooks/
+      context/
+      services/
+      layouts/
+      assets/
+      utils/
+
+  server/
+    controllers/
+    models/
+    routes/
+    middleware/
+    config/
+    utils/
+    services/
+    uploads/
+    app.js
+
+
+PHASE 5: AUTH FLOW
+------------------
+
+Register → Hash Password → Store User → Login → Generate JWT → Save Token → Protected Routes
+
+
+PHASE 6: PAGES
+--------------
+
+Public:
+- Home
+- Login
+- Register
+- About
+- Contact
+
+Tenant Dashboard:
+- Dashboard
+- My Property
+- Rent Due
+- Payment
+- Payment History
+- Profile
+
+Landlord Dashboard:
+- Dashboard
+- My Properties
+- Add Property
+- Tenants
+- Payment Records
+- Reports
+- Profile
+
+Admin Dashboard:
+- Dashboard
+- Users
+- Properties
+- Payments
+- Reports
+
+
+PHASE 7: API DESIGN
+-------------------
+
+Auth:
+POST   /api/auth/register
+POST   /api/auth/login
+GET    /api/auth/profile
+
+Property:
+GET    /api/properties
+GET    /api/properties/:id
+POST   /api/properties
+PUT    /api/properties/:id
+DELETE /api/properties/:id
+
+Tenant:
+POST   /api/tenants/assign
+GET    /api/tenants/:id
+
+Payment:
+POST   /api/payments
+GET    /api/payments/history
+GET    /api/payments/landlord
+GET    /api/payments/admin
+
+
+PHASE 8: DASHBOARD METRICS
+--------------------------
+
+- Total Properties
+- Total Tenants
+- Monthly Income
+- Pending Payments
+- Recent Transactions
+- Notifications
+
+
+PHASE 9: SECURITY
+-----------------
+
+- Hash passwords with bcrypt
+- JWT authentication
+- Role-based authorization
+- Validate inputs
+- Rate limiting
+- Use HTTPS
+- Store secrets in .env
+
+
+PHASE 10: NICE-TO-HAVE FEATURES
+-------------------------------
+
+- Email & SMS rent reminders
+- PDF receipts
+- QR code payments
+- Dark mode
+- Real-time notifications (Socket.IO)
+- Maintenance requests
+- Lease uploads
+- Analytics charts
+
+
+</div>
+
+</body>
+</html>
