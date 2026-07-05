@@ -64,7 +64,7 @@ const AddProperty = () => {
       });
 
       // redirect
-      navigate("/landlord");
+      navigate("/landlord/properties");
     } catch (err) {
       alert(err.response?.data?.message || "Failed to add property");
     } finally {

@@ -28,3 +28,21 @@ export const addProperty = async (req, res) => {
     });
   }
 };
+
+export const getProperties = async (req, res) => {
+  try {
+    const properties = await Property.find();
+    res.json({ properties });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const deleteProperty = async (req, res) => {
+  try {
+    await Property.findByIdAndDelete(req.params.id);
+    res.json({ message: "Deleted" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
