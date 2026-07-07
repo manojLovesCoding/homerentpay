@@ -4,9 +4,7 @@ export const addProperty = async (req, res) => {
   try {
     const { title, address, city, rent } = req.body;
 
-    const image = req.file
-      ? `/uploads/${req.file.filename}`
-      : null;
+    const image = req.file ? `/uploads/${req.file.filename}` : null;
 
     const property = await Property.create({
       title,
@@ -20,6 +18,26 @@ export const addProperty = async (req, res) => {
     res.status(201).json({
       success: true,
       property,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Homepage properties
+export const getHomeProperties = async (req, res) => {
+  try {
+    const properties = await Property.find()
+      .sort({ createdAt: -1 })
+      .select("title address city rent image");
+
+    res.status(200).json({
+      success: true,
+      count: properties.length,
+      properties,
     });
   } catch (error) {
     res.status(500).json({

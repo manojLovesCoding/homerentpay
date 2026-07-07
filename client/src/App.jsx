@@ -33,6 +33,7 @@ import Users from "./pages/admin/Users";
 import AdminProperties from "./pages/admin/Properties";
 import AdminPayments from "./pages/admin/Payments";
 import AdminReports from "./pages/admin/Reports";
+import Home from "./pages/Home";
 
 const App = () => {
   return (
@@ -40,7 +41,14 @@ const App = () => {
       <Toaster />
       <Routes>
         {/* AUTH */}
-        <Route path="/" element={<Navigate to="/login" />} />
+        <Route
+          path="/"
+          element={
+            <PublicRoute>
+              <Home />
+            </PublicRoute>
+          }
+        />
 
         <Route
           path="/login"
