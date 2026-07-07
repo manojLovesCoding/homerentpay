@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios.js";
 
 const AddProperty = () => {
   const navigate = useNavigate();
+  const fileRef = useRef(null);
 
   const [loading, setLoading] = useState(false);
 
@@ -35,11 +36,15 @@ const AddProperty = () => {
 
     try {
       const data = new FormData();
+
       data.append("title", formData.title);
       data.append("address", formData.address);
       data.append("city", formData.city);
       data.append("rent", formData.rent);
-      data.append("image", formData.image);
+
+      if (formData.image) {
+        data.append("image", formData.image);
+      }
 
       const token = localStorage.getItem("token");
 
@@ -54,7 +59,6 @@ const AddProperty = () => {
 
       console.log(res.data);
 
-      // reset form
       setFormData({
         title: "",
         address: "",
@@ -63,8 +67,12 @@ const AddProperty = () => {
         image: null,
       });
 
-      // redirect
+      if (fileRef.current) {
+        fileRef.current.value = "";
+      }
+
       navigate("/landlord/properties");
+
     } catch (err) {
       alert(err.response?.data?.message || "Failed to add property");
     } finally {
@@ -114,6 +122,7 @@ const AddProperty = () => {
         />
 
         <input
+          ref={fileRef}
           type="file"
           onChange={handleFileChange}
           className="w-full border p-2"
@@ -125,7 +134,7 @@ const AddProperty = () => {
           disabled={loading}
           className="w-full bg-blue-600 text-white py-2 disabled:opacity-50"
         >
-          {loading ? "Submitting..." : "Submit"}
+          {loading ? "Uploading..." : "Submit"}
         </button>
 
       </form>

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import api from "../api/axios";
-import { getImageUrl } from "../utils/getImageUrl";
+import api from "../api/axios.js";
 
 const Home = () => {
   const [properties, setProperties] = useState([]);
@@ -66,11 +65,11 @@ const Home = () => {
                 className="bg-white rounded-xl shadow overflow-hidden"
               >
                 {property.image && (
-                  <img
-                    src={getImageUrl(property.image)}
-                    alt={property.title}
-                    className="w-full h-52 object-cover"
-                  />
+                 <img
+  src={property.image}
+  alt={property.title}
+  className="w-full h-52 object-cover"
+/>
                 )}
 
                 <div className="p-5">

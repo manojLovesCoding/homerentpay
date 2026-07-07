@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api/axios.js";
 import { useNavigate } from "react-router-dom";
-import { getImageUrl } from "../../utils/getImageUrl.js";
 
 const PropertyList = () => {
   const navigate = useNavigate();
@@ -65,10 +64,10 @@ const PropertyList = () => {
               {/* IMAGE (smaller) */}
               {property.image && (
                 <img
-                  src={getImageUrl(property.image)}
-                  alt="property"
-                  className="w-full h-28 object-cover"
-                />
+  src={property.image}
+  alt="property"
+  className="w-full h-28 object-cover"
+/>
               )}
 
               {/* CONTENT */}
