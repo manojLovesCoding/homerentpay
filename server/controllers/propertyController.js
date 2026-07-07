@@ -97,3 +97,57 @@ export const deleteProperty = async (req, res) => {
     });
   }
 };
+
+
+export const updateProperty = async (req, res) => {
+  try {
+    const { title, address, city, rent } = req.body;
+
+    const property = await Property.findById(req.params.id);
+
+    if (!property) {
+      return res.status(404).json({
+        message: "Property not found",
+      });
+    }
+
+    let imageUrl = property.image;
+
+    if (req.file) {
+      const result = await new Promise((resolve, reject) => {
+        cloudinary.uploader
+          .upload_stream(
+            {
+              folder: "properties",
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          )
+          .end(req.file.buffer);
+      });
+
+      imageUrl = result.secure_url;
+    }
+
+    property.title = title;
+    property.address = address;
+    property.city = city;
+    property.rent = rent;
+    property.image = imageUrl;
+
+    await property.save();
+
+    res.json({
+      success: true,
+      property,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

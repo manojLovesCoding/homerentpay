@@ -34,6 +34,7 @@ import AdminProperties from "./pages/admin/Properties";
 import AdminPayments from "./pages/admin/Payments";
 import AdminReports from "./pages/admin/Reports";
 import Home from "./pages/Home";
+import EditProperty from "./pages/landloard/EditProperty";
 
 const App = () => {
   return (
@@ -86,6 +87,7 @@ const App = () => {
             <Route index element={<LandlordDashboard />} />
             <Route path="properties" element={<PropertyList />} />
             <Route path="add-property" element={<AddProperty />} />
+            <Route path="property/edit/:id" element={<EditProperty />} />
             <Route path="tenants" element={<TenantList />} />
             <Route path="payments" element={<Payments />} />
             <Route path="reports" element={<Reports />} />

@@ -94,7 +94,7 @@ const PropertyList = () => {
 
                   <button
                     onClick={() =>
-                      navigate(`/property/edit/${property._id}`)
+                      navigate(`/landlord/property/edit/${property._id}`)
                     }
                     className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded"
                   >

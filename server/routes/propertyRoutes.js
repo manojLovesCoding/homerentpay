@@ -4,6 +4,7 @@ import {
   deleteProperty,
   getProperties,
   getHomeProperties,
+  updateProperty,
 } from "../controllers/propertyController.js";
 import { verifyToken } from "../middleware/auth.js";
 import { authorizeRoles } from "../middleware/role.js";
@@ -28,6 +29,15 @@ propertyRouter.delete(
   verifyToken,
   authorizeRoles("admin", "landlord"),
   deleteProperty
+);
+
+
+propertyRouter.put(
+  "/:id",
+  verifyToken,
+  authorizeRoles("admin", "landlord"),
+  upload.single("image"),
+  updateProperty
 );
 
 export default propertyRouter;
