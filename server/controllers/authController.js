@@ -46,7 +46,6 @@ export const register = async (req, res) => {
   }
 };
 
-
 export const login = async (req, res) => {
   try {
     const { email, password, role } = req.body;
@@ -57,6 +56,14 @@ export const login = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "User not found",
+      });
+    }
+
+    // Check account status
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: "Your account has been deactivated. Contact your landlord.",
       });
     }
 
@@ -85,7 +92,7 @@ export const login = async (req, res) => {
       process.env.JWT_SECRET,
       {
         expiresIn: "7d",
-      }
+      },
     );
 
     res.status(200).json({
@@ -99,6 +106,178 @@ export const login = async (req, res) => {
         phone: user.phone,
         role: user.role,
       },
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+export const createTenant = async (req, res) => {
+  try {
+    const { name, email, phone, password } = req.body;
+
+    const existingUser = await User.findOne({
+      $or: [{ email }, { phone }],
+    });
+
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: "User already exists",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const tenant = await User.create({
+      name,
+      email,
+      phone,
+      password: hashedPassword,
+      role: "tenant",
+      createdBy: req.user.id, // landlord id
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Tenant created successfully",
+      tenant: {
+        id: tenant._id,
+        name: tenant.name,
+        email: tenant.email,
+        phone: tenant.phone,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+export const getTenants = async (req, res) => {
+  try {
+    const tenants = await User.find({
+      role: "tenant",
+      createdBy: req.user.id,
+    }).select("-password");
+
+    res.json({
+      success: true,
+      tenants,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+export const updateTenant = async (req, res) => {
+  try {
+    const { name, email, phone } = req.body;
+
+    const tenant = await User.findOne({
+      _id: req.params.id,
+      role: "tenant",
+      createdBy: req.user.id,
+    });
+
+    if (!tenant) {
+      return res.status(404).json({
+        success: false,
+        message: "Tenant not found",
+      });
+    }
+
+    tenant.name = name;
+    tenant.email = email;
+    tenant.phone = phone;
+
+    await tenant.save();
+
+    res.json({
+      success: true,
+      message: "Tenant updated successfully",
+      tenant,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+export const deactivateTenant = async (req, res) => {
+  try {
+    const tenant = await User.findOne({
+      _id: req.params.id,
+      role: "tenant",
+      createdBy: req.user.id,
+    });
+
+    if (!tenant) {
+      return res.status(404).json({
+        success: false,
+        message: "Tenant not found",
+      });
+    }
+
+    tenant.isActive = false;
+
+    await tenant.save();
+
+    res.json({
+      success: true,
+      message: "Tenant deactivated successfully",
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+export const updateTenantPassword = async (req, res) => {
+  try {
+    const { password } = req.body;
+
+    if (!password || password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters",
+      });
+    }
+
+    const tenant = await User.findOne({
+      _id: req.params.id,
+      role: "tenant",
+      createdBy: req.user.id,
+    });
+
+    if (!tenant) {
+      return res.status(404).json({
+        success: false,
+        message: "Tenant not found",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    tenant.password = hashedPassword;
+
+    await tenant.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Tenant password updated successfully",
     });
   } catch (err) {
     res.status(500).json({

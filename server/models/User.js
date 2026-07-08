@@ -31,8 +31,14 @@ const userSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ["landlord", "tenant","admin"],
+      enum: ["landlord", "tenant", "admin"],
       default: "tenant",
+    },
+
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
     },
 
     isActive: {
@@ -42,7 +48,7 @@ const userSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 export default mongoose.model("User", userSchema);

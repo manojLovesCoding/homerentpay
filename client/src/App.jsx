@@ -35,6 +35,9 @@ import AdminPayments from "./pages/admin/Payments";
 import AdminReports from "./pages/admin/Reports";
 import Home from "./pages/Home";
 import EditProperty from "./pages/landloard/EditProperty";
+import AddTenant from "./pages/landloard/AddTenant";
+import EditTenant from "./pages/landloard/EditTenant";
+import UpdateTenantPassword from "./pages/landloard/UpdateTenantPassword";
 
 const App = () => {
   return (
@@ -85,10 +88,19 @@ const App = () => {
         <Route element={<ProtectedRoute allowedRoles={["landlord"]} />}>
           <Route path="/landlord" element={<LandlordLayout />}>
             <Route index element={<LandlordDashboard />} />
+
             <Route path="properties" element={<PropertyList />} />
             <Route path="add-property" element={<AddProperty />} />
             <Route path="property/edit/:id" element={<EditProperty />} />
+
             <Route path="tenants" element={<TenantList />} />
+            <Route path="add-tenant" element={<AddTenant />} />
+            <Route path="tenant/edit/:id" element={<EditTenant />} />
+            <Route
+              path="tenant/password/:id"
+              element={<UpdateTenantPassword />}
+            />
+
             <Route path="payments" element={<Payments />} />
             <Route path="reports" element={<Reports />} />
             <Route path="profile" element={<Profile />} />
