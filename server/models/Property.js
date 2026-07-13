@@ -34,6 +34,12 @@ const propertySchema = new mongoose.Schema(
       required: true,
     },
 
+    tenant: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
     status: {
       type: String,
       enum: ["available", "rented"],
@@ -42,7 +48,7 @@ const propertySchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 export default mongoose.model("Property", propertySchema);

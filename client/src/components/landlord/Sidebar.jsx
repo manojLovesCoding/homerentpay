@@ -13,6 +13,7 @@ const LandlordSidebar = () => {
     { label: "Properties", path: "properties" },
     { label: "Add Property", path: "add-property" },
     { label: "Tenants", path: "tenants" },
+    { label: "Assigned Tenants", path: "assigned-tenants" },
     { label: "Payments", path: "payments" },
     { label: "Reports", path: "reports" },
     { label: "Profile", path: "profile" },
@@ -28,13 +29,12 @@ const LandlordSidebar = () => {
       {/* Mobile Menu Button */}
       <button
         onClick={() => setOpen(!open)}
-        className="md:hidden fixed top-4 left-4 z-50 bg-blue-600 text-white p-2 rounded-lg"
+        className="md:hidden fixed top-4 left-4 z-50 bg-blue-600 text-white p-2 rounded-lg shadow-lg"
       >
         ☰
       </button>
 
-
-      {/* Overlay */}
+      {/* Mobile Overlay */}
       {open && (
         <div
           onClick={() => setOpen(false)}
@@ -42,12 +42,10 @@ const LandlordSidebar = () => {
         />
       )}
 
-
       {/* Sidebar */}
       <aside
         className={`
-          fixed md:static
-          top-0 left-0
+          fixed top-0 left-0
           h-screen w-64
           bg-white shadow-lg
           flex flex-col
@@ -60,16 +58,15 @@ const LandlordSidebar = () => {
           }
         `}
       >
-
+        {/* Header */}
         <div className="p-6 border-b">
-          <h1 className="text-xl md:text-2xl font-bold text-blue-600">
+          <h1 className="text-2xl font-bold text-blue-600">
             🏢 Landlord Panel
           </h1>
         </div>
 
-
-        <nav className="flex-1 p-4 space-y-2">
-
+        {/* Navigation */}
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           {menuItems.map((item, index) => (
             <NavLink
               key={index}
@@ -79,7 +76,7 @@ const LandlordSidebar = () => {
               className={({ isActive }) =>
                 `block px-4 py-3 rounded-lg transition ${
                   isActive
-                    ? "bg-blue-100 text-blue-600"
+                    ? "bg-blue-100 text-blue-600 font-semibold"
                     : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
                 }`
               }
@@ -88,21 +85,18 @@ const LandlordSidebar = () => {
             </NavLink>
           ))}
 
-
-          <div
+          <button
             onClick={handleLogout}
-            className="px-4 py-3 rounded-lg cursor-pointer text-red-600 hover:bg-red-50"
+            className="w-full text-left px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition"
           >
             Logout
-          </div>
-
+          </button>
         </nav>
 
-
-        <div className="p-4 border-t text-sm text-gray-500">
+        {/* Footer */}
+        <div className="p-4 border-t text-sm text-center text-gray-500">
           © {new Date().getFullYear()} Rent System
         </div>
-
       </aside>
     </>
   );

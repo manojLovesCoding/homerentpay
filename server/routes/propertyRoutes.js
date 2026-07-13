@@ -5,6 +5,9 @@ import {
   getProperties,
   getHomeProperties,
   updateProperty,
+  removeTenant,
+  assignTenant,
+  getAssignedTenants,
 } from "../controllers/propertyController.js";
 import { verifyToken } from "../middleware/auth.js";
 import { authorizeRoles } from "../middleware/role.js";
@@ -39,5 +42,28 @@ propertyRouter.put(
   upload.single("image"),
   updateProperty
 );
+
+propertyRouter.put(
+  "/:id/assign-tenant",
+  verifyToken,
+  authorizeRoles("admin", "landlord"),
+  assignTenant
+);
+
+propertyRouter.put(
+  "/:id/remove-tenant",
+  verifyToken,
+  authorizeRoles("admin", "landlord"),
+  removeTenant
+);
+
+propertyRouter.get(
+  "/assigned-tenants",
+  verifyToken,
+  authorizeRoles("admin", "landlord"),
+  getAssignedTenants
+);
+
+
 
 export default propertyRouter;

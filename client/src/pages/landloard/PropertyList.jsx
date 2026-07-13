@@ -88,27 +88,42 @@ const PropertyList = () => {
                 {/* ACTIONS */}
                 <div className="flex gap-2 mt-3">
 
-                  <button className="text-xs px-2 py-1 bg-gray-100 rounded">
-                    View
-                  </button>
+  <button className="text-xs px-2 py-1 bg-gray-100 rounded">
+    View
+  </button>
 
-                  <button
-                    onClick={() =>
-                      navigate(`/landlord/property/edit/${property._id}`)
-                    }
-                    className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded"
-                  >
-                    Edit
-                  </button>
+  <button
+    onClick={() =>
+      navigate(`/landlord/property/edit/${property._id}`)
+    }
+    className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded"
+  >
+    Edit
+  </button>
 
-                  <button
-                    onClick={() => handleDelete(property._id)}
-                    className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded"
-                  >
-                    Delete
-                  </button>
+  {property.status === "available" ? (
+    <button
+      onClick={() =>
+        navigate(`/landlord/property/${property._id}/assign-tenant`)
+      }
+      className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded"
+    >
+      Assign Tenant
+    </button>
+  ) : (
+    <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
+      Rented
+    </span>
+  )}
 
-                </div>
+  <button
+    onClick={() => handleDelete(property._id)}
+    className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded"
+  >
+    Delete
+  </button>
+
+</div>
 
               </div>
             </div>

@@ -1,5 +1,6 @@
 import Property from "../models/Property.js";
 import { v2 as cloudinary } from "cloudinary";
+import User from "../models/User.js";
 
 export const addProperty = async (req, res) => {
   try {
@@ -17,7 +18,7 @@ export const addProperty = async (req, res) => {
             (error, result) => {
               if (error) reject(error);
               else resolve(result);
-            }
+            },
           )
           .end(req.file.buffer);
       });
@@ -38,7 +39,6 @@ export const addProperty = async (req, res) => {
       success: true,
       property,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -47,7 +47,6 @@ export const addProperty = async (req, res) => {
   }
 };
 
-
 export const getProperties = async (req, res) => {
   try {
     const properties = await Property.find();
@@ -55,14 +54,12 @@ export const getProperties = async (req, res) => {
     res.json({
       properties,
     });
-
   } catch (err) {
     res.status(500).json({
       message: err.message,
     });
   }
 };
-
 
 export const getHomeProperties = async (req, res) => {
   try {
@@ -74,14 +71,12 @@ export const getHomeProperties = async (req, res) => {
       success: true,
       properties,
     });
-
   } catch (err) {
     res.status(500).json({
       message: err.message,
     });
   }
 };
-
 
 export const deleteProperty = async (req, res) => {
   try {
@@ -90,14 +85,12 @@ export const deleteProperty = async (req, res) => {
     res.json({
       message: "Deleted",
     });
-
   } catch (err) {
     res.status(500).json({
       message: err.message,
     });
   }
 };
-
 
 export const updateProperty = async (req, res) => {
   try {
@@ -123,7 +116,7 @@ export const updateProperty = async (req, res) => {
             (error, result) => {
               if (error) reject(error);
               else resolve(result);
-            }
+            },
           )
           .end(req.file.buffer);
       });
@@ -142,6 +135,156 @@ export const updateProperty = async (req, res) => {
     res.json({
       success: true,
       property,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const assignTenant = async (req, res) => {
+  try {
+    const { tenantId } = req.body;
+
+    const property = await Property.findById(req.params.id);
+
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: "Property not found",
+      });
+    }
+
+    // landlord can assign only his property
+    if (
+      req.user.role !== "admin" &&
+      property.landlord.toString() !== req.user.id
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    if (property.status === "rented") {
+      return res.status(400).json({
+        success: false,
+        message: "Property is already rented",
+      });
+    }
+
+    // Find tenant
+    const tenant = await User.findOne({
+      _id: tenantId,
+      role: "tenant",
+      isActive: true,
+    });
+
+    if (!tenant) {
+      return res.status(404).json({
+        success: false,
+        message: "Tenant not found",
+      });
+    }
+
+    // Check tenant belongs to landlord
+    if (
+      req.user.role !== "admin" &&
+      tenant.createdBy.toString() !== req.user.id
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Tenant does not belong to you",
+      });
+    }
+
+    // NEW: Prevent multiple active assignments
+    const alreadyAssigned = await Property.findOne({
+      tenant: tenant._id,
+      status: "rented",
+    });
+
+    if (alreadyAssigned) {
+      return res.status(400).json({
+        success: false,
+        message: "Tenant is already assigned to another property",
+      });
+    }
+
+    property.tenant = tenant._id;
+    property.status = "rented";
+
+    await property.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Tenant assigned successfully",
+      property,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const removeTenant = async (req, res) => {
+  try {
+    const property = await Property.findById(req.params.id);
+
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: "Property not found",
+      });
+    }
+
+    if (
+      req.user.role !== "admin" &&
+      property.landlord.toString() !== req.user.id
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    property.tenant = null;
+    property.status = "available";
+
+    await property.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Tenant removed successfully",
+      property,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const getAssignedTenants = async (req, res) => {
+  try {
+    const properties = await Property.find({
+      landlord: req.user.id,
+      status: "rented",
+    })
+      .populate({
+        path: "tenant",
+        select: "name email phone isActive",
+      })
+      .select("title address city rent status tenant");
+
+    res.status(200).json({
+      success: true,
+      properties,
     });
 
   } catch (error) {

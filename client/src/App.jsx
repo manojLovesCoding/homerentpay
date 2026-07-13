@@ -38,6 +38,8 @@ import EditProperty from "./pages/landloard/EditProperty";
 import AddTenant from "./pages/landloard/AddTenant";
 import EditTenant from "./pages/landloard/EditTenant";
 import UpdateTenantPassword from "./pages/landloard/UpdateTenantPassword";
+import AssignTenant from "./pages/landloard/AssignTenant";
+import AssignedTenants from "./pages/landloard/AssignedTenants";
 
 const App = () => {
   return (
@@ -92,6 +94,11 @@ const App = () => {
             <Route path="properties" element={<PropertyList />} />
             <Route path="add-property" element={<AddProperty />} />
             <Route path="property/edit/:id" element={<EditProperty />} />
+            <Route
+              path="property/:id/assign-tenant"
+              element={<AssignTenant />}
+            />
+            <Route path="assigned-tenants" element={<AssignedTenants />} />
 
             <Route path="tenants" element={<TenantList />} />
             <Route path="add-tenant" element={<AddTenant />} />
