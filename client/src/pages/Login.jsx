@@ -13,12 +13,14 @@ const Login = () => {
     role: "tenant",
   });
 
+  const [loading, setLoading] = useState(false);
+
   // auto redirect if already logged in
   useEffect(() => {
     if (user) {
       navigate(`/${user.role}`);
     }
-  }, [user]);
+  }, [user, navigate]);
 
   const handleChange = (e) => {
     setFormData({
@@ -31,6 +33,8 @@ const Login = () => {
     e.preventDefault();
 
     try {
+      setLoading(true);
+
       const { data } = await api.post("/auth/login", formData);
 
       login(data);
@@ -39,19 +43,26 @@ const Login = () => {
 
       // redirect after login
       navigate(`/${data.user.role}`);
+
     } catch (err) {
       alert(err.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
+
       <div className="w-full max-w-md bg-white shadow-lg rounded-xl p-8">
+
         <h1 className="text-3xl font-bold text-center text-blue-600 mb-6">
           Home Rent
         </h1>
 
+
         <form onSubmit={handleSubmit} className="space-y-4">
+
           <input
             name="email"
             value={formData.email}
@@ -59,7 +70,9 @@ const Login = () => {
             placeholder="Email"
             type="email"
             className="w-full px-4 py-2 border rounded-lg"
+            disabled={loading}
           />
+
 
           <input
             name="password"
@@ -68,27 +81,50 @@ const Login = () => {
             placeholder="Password"
             type="password"
             className="w-full px-4 py-2 border rounded-lg"
+            disabled={loading}
           />
+
 
           <select
             name="role"
             value={formData.role}
             onChange={handleChange}
             className="w-full px-4 py-2 border rounded-lg"
+            disabled={loading}
           >
-            <option value="tenant">Tenant</option>
-            <option value="landlord">Landlord</option>
-            <option value="admin">Admin</option>
+
+            <option value="tenant">
+              Tenant
+            </option>
+
+            <option value="landlord">
+              Landlord
+            </option>
+
+            <option value="admin">
+              Admin
+            </option>
+
           </select>
+
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
+            disabled={loading}
+            className={`w-full text-white py-2 rounded-lg transition ${
+              loading
+                ? "bg-blue-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
+
+
         </form>
+
       </div>
+
     </div>
   );
 };
