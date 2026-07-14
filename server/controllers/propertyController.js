@@ -294,3 +294,35 @@ export const getAssignedTenants = async (req, res) => {
     });
   }
 };
+
+export const getTenantProperty = async (req, res) => {
+  try {
+    const property = await Property.findOne({
+      tenant: req.user.id,
+      status: "rented",
+    })
+      .populate({
+        path: "landlord",
+        select: "name email phone",
+      })
+      .select("title address city rent image status landlord");
+
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: "No property assigned",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      property,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

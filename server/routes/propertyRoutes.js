@@ -8,6 +8,7 @@ import {
   removeTenant,
   assignTenant,
   getAssignedTenants,
+  getTenantProperty,
 } from "../controllers/propertyController.js";
 import { verifyToken } from "../middleware/auth.js";
 import { authorizeRoles } from "../middleware/role.js";
@@ -62,6 +63,13 @@ propertyRouter.get(
   verifyToken,
   authorizeRoles("admin", "landlord"),
   getAssignedTenants
+);
+
+propertyRouter.get(
+  "/tenant-property",
+  verifyToken,
+  authorizeRoles("tenant"),
+  getTenantProperty
 );
 
 
