@@ -1,6 +1,7 @@
 import Property from "../models/Property.js";
 import { v2 as cloudinary } from "cloudinary";
 import User from "../models/User.js";
+import Payment from "../models/Payment.js";
 
 export const addProperty = async (req, res) => {
   try {
@@ -286,7 +287,6 @@ export const getAssignedTenants = async (req, res) => {
       success: true,
       properties,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -318,7 +318,33 @@ export const getTenantProperty = async (req, res) => {
       success: true,
       property,
     });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
+export const getPaymentStatus = async (req, res) => {
+  try {
+    const { propertyId } = req.query;
+
+    const date = new Date();
+
+    const payment = await Payment.findOne({
+      tenant: req.user.id,
+      property: propertyId,
+      status: "paid",
+      month: date.getMonth() + 1,
+      year: date.getFullYear(),
+    });
+
+    res.status(200).json({
+      success: true,
+      paid: !!payment,
+      payment,
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
