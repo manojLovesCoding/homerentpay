@@ -40,6 +40,13 @@ const propertySchema = new mongoose.Schema(
       default: null,
     },
 
+    dueDate: {
+  type: Number,
+  min: 1,
+  max: 31,
+  default: null,
+},
+
     status: {
       type: String,
       enum: ["available", "rented"],

@@ -147,7 +147,14 @@ export const updateProperty = async (req, res) => {
 
 export const assignTenant = async (req, res) => {
   try {
-    const { tenantId } = req.body;
+    const { tenantId, dueDate } = req.body;
+
+    if (!dueDate || dueDate < 1 || dueDate > 31) {
+      return res.status(400).json({
+        success: false,
+        message: "Due date must be between 1 and 31",
+      });
+    }
 
     const property = await Property.findById(req.params.id);
 
@@ -201,7 +208,7 @@ export const assignTenant = async (req, res) => {
       });
     }
 
-    // NEW: Prevent multiple active assignments
+    // Prevent multiple active assignments
     const alreadyAssigned = await Property.findOne({
       tenant: tenant._id,
       status: "rented",
@@ -216,6 +223,7 @@ export const assignTenant = async (req, res) => {
 
     property.tenant = tenant._id;
     property.status = "rented";
+    property.dueDate = Number(dueDate);
 
     await property.save();
 
@@ -254,7 +262,8 @@ export const removeTenant = async (req, res) => {
     }
 
     property.tenant = null;
-    property.status = "available";
+property.status = "available";
+property.dueDate = null;
 
     await property.save();
 
