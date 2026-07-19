@@ -9,6 +9,7 @@ import {
   assignTenant,
   getAssignedTenants,
   getTenantProperty,
+  getPendingRent,
 } from "../controllers/propertyController.js";
 import { verifyToken } from "../middleware/auth.js";
 import { authorizeRoles } from "../middleware/role.js";
@@ -70,6 +71,13 @@ propertyRouter.get(
   verifyToken,
   authorizeRoles("tenant"),
   getTenantProperty
+);
+
+propertyRouter.get(
+  "/pending-rent",
+  verifyToken,
+  authorizeRoles("tenant"),
+  getPendingRent
 );
 
 

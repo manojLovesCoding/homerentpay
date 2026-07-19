@@ -314,7 +314,9 @@ export const getTenantProperty = async (req, res) => {
         path: "landlord",
         select: "name email phone",
       })
-      .select("title address city rent image status landlord");
+      .select(
+        "title address city rent image status landlord dueDate"
+      );
 
     if (!property) {
       return res.status(404).json({
@@ -327,11 +329,14 @@ export const getTenantProperty = async (req, res) => {
       success: true,
       property,
     });
+
   } catch (error) {
+
     res.status(500).json({
       success: false,
       message: error.message,
     });
+
   }
 };
 
@@ -354,6 +359,66 @@ export const getPaymentStatus = async (req, res) => {
       paid: !!payment,
       payment,
     });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+export const getPendingRent = async (req, res) => {
+  try {
+    const { propertyId } = req.query;
+
+    if (!propertyId) {
+      return res.status(400).json({
+        success: false,
+        message: "Property ID is required",
+      });
+    }
+
+    const property = await Property.findOne({
+      _id: propertyId,
+      tenant: req.user.id,
+      status: "rented",
+    });
+
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: "Property not assigned",
+      });
+    }
+
+    const date = new Date();
+
+    const payment = await Payment.findOne({
+      tenant: req.user.id,
+      property: propertyId,
+      month: date.getMonth() + 1,
+      year: date.getFullYear(),
+      status: "paid",
+    });
+
+    if (payment) {
+      return res.status(200).json({
+        success: true,
+        pending: false,
+        message: "Rent already paid",
+        amount: property.rent,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      pending: true,
+      amount: property.rent,
+      dueDate: property.dueDate,
+      message: "Rent payment pending",
+    });
+
   } catch (error) {
     res.status(500).json({
       success: false,
