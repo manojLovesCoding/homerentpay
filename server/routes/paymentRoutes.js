@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   createOrder,
+  getLandlordSummary,
   getPaymentHistory,
   verifyPayment,
 } from "../controllers/paymentController.js";
@@ -36,6 +37,13 @@ paymentRouter.get(
   verifyToken,
   authorizeRoles("tenant"),
   getPaymentHistory
+);
+
+paymentRouter.get(
+  "/landlord-summary",
+  verifyToken,
+  authorizeRoles("landlord"),
+  getLandlordSummary
 );
 
 export default paymentRouter;

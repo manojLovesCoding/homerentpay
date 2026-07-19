@@ -2,6 +2,7 @@ import razorpay from "../config/razorpay.js";
 import Property from "../models/Property.js";
 import Payment from "../models/Payment.js";
 import crypto from "crypto";
+import User from "../models/User.js";
 
 export const createOrder = async (req, res) => {
   try {
@@ -140,3 +141,123 @@ export const getPaymentHistory = async (req, res) => {
   }
 };
 
+export const getLandlordSummary = async (req, res) => {
+  try {
+
+    const landlordId = req.user.id;
+
+    const date = new Date();
+
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+
+
+    // Total properties
+    const totalProperties = await Property.countDocuments({
+      landlord: landlordId,
+    });
+
+
+
+    // Total tenants
+    const totalTenants = await User.countDocuments({
+      role: "tenant",
+      createdBy: landlordId,
+      isActive: true,
+    });
+
+
+
+    // Monthly income
+    const incomeResult = await Payment.aggregate([
+      {
+        $match: {
+          landlord: landlordId,
+          status: "paid",
+          month,
+          year,
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: {
+            $sum: "$amount",
+          },
+        },
+      },
+    ]);
+
+
+    const monthlyIncome =
+      incomeResult.length > 0
+        ? incomeResult[0].total
+        : 0;
+
+
+
+    // Pending rent
+    const pendingPayments = await Payment.aggregate([
+      {
+        $match: {
+          landlord: landlordId,
+          status: "created",
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: {
+            $sum: "$amount",
+          },
+        },
+      },
+    ]);
+
+
+    const pendingRent =
+      pendingPayments.length > 0
+        ? pendingPayments[0].total
+        : 0;
+
+
+
+    // Recent payments
+    const payments = await Payment.find({
+      landlord: landlordId,
+      status: "paid",
+    })
+      .populate("tenant", "name")
+      .populate("property", "title")
+      .sort({
+        createdAt: -1,
+      })
+      .limit(10);
+
+
+
+    res.status(200).json({
+
+      success: true,
+
+      stats: {
+        totalProperties,
+        totalTenants,
+        monthlyIncome,
+        pendingRent,
+      },
+
+      payments,
+
+    });
+
+
+  } catch (error) {
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+
+  }
+};
