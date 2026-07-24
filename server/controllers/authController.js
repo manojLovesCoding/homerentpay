@@ -115,6 +115,25 @@ export const login = async (req, res) => {
   }
 };
 
+export const getUsers = async (req, res) => {
+  try {
+    const users = await User.find()
+      .select("-password")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      users,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 export const createTenant = async (req, res) => {
   try {
     const { name, email, phone, password } = req.body;

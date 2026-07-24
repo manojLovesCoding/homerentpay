@@ -7,6 +7,7 @@ import {
   deactivateTenant,
   updateTenant,
   updateTenantPassword,
+  getUsers,
 } from "../controllers/authController.js";
 import { verifyToken } from "../middleware/auth.js";
 import { authorizeRoles } from "../middleware/role.js";
@@ -22,6 +23,14 @@ authRouter.post(
   authorizeRoles("admin", "landlord"),
   createTenant,
 );
+
+authRouter.get(
+  "/users",
+  verifyToken,
+  authorizeRoles("admin"),
+  getUsers
+);
+
 authRouter.get(
   "/tenants",
   verifyToken,

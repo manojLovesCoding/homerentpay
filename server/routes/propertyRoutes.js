@@ -27,7 +27,12 @@ propertyRouter.post(
   addProperty
 );
 
-propertyRouter.get("/", getProperties);
+propertyRouter.get(
+  "/",
+  verifyToken,
+  authorizeRoles("admin", "landlord"),
+  getProperties
+);
 
 propertyRouter.delete(
   "/:id",

@@ -50,13 +50,18 @@ export const addProperty = async (req, res) => {
 
 export const getProperties = async (req, res) => {
   try {
-    const properties = await Property.find();
+    const properties = await Property.find()
+      .populate("landlord", "name email phone")
+      .populate("tenant", "name email phone");
 
-    res.json({
+    res.status(200).json({
+      success: true,
       properties,
     });
+
   } catch (err) {
     res.status(500).json({
+      success: false,
       message: err.message,
     });
   }

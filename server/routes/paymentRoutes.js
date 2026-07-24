@@ -1,6 +1,8 @@
 import { Router } from "express";
 import {
   createOrder,
+  getAdminSummary,
+  getAllPayments,
   getLandlordSummary,
   getPaymentHistory,
   verifyPayment,
@@ -44,6 +46,20 @@ paymentRouter.get(
   verifyToken,
   authorizeRoles("landlord"),
   getLandlordSummary
+);
+
+paymentRouter.get(
+  "/all",
+  verifyToken,
+  authorizeRoles("admin"),
+  getAllPayments
+);
+
+paymentRouter.get(
+  "/admin-summary",
+  verifyToken,
+  authorizeRoles("admin"),
+  getAdminSummary
 );
 
 export default paymentRouter;

@@ -261,3 +261,103 @@ export const getLandlordSummary = async (req, res) => {
 
   }
 };
+
+export const getAllPayments = async (req, res) => {
+  try {
+    const payments = await Payment.find()
+      .populate("tenant", "name email")
+      .populate("property", "title city")
+      .populate("landlord", "name email")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      payments,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const getAdminSummary = async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+
+    const totalTenants = await User.countDocuments({
+      role: "tenant",
+    });
+
+    const totalLandlords = await User.countDocuments({
+      role: "landlord",
+    });
+
+    const totalProperties = await Property.countDocuments();
+
+
+    const revenueResult = await Payment.aggregate([
+      {
+        $match: {
+          status: "paid",
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: {
+            $sum: "$amount",
+          },
+        },
+      },
+    ]);
+
+
+    const revenue =
+      revenueResult.length > 0
+        ? revenueResult[0].total
+        : 0;
+
+
+    const pendingPayments = await Payment.countDocuments({
+      status: "created",
+    });
+
+
+    const recentPayments = await Payment.find()
+      .populate("tenant", "name")
+      .populate("property", "title")
+      .sort({
+        createdAt: -1,
+      })
+      .limit(5);
+
+
+    res.status(200).json({
+      success: true,
+
+      stats: {
+        totalUsers,
+        totalTenants,
+        totalLandlords,
+        totalProperties,
+        revenue,
+        pendingPayments,
+      },
+
+      activities: recentPayments,
+
+    });
+
+
+  } catch (error) {
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+
+  }
+};
