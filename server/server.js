@@ -7,9 +7,12 @@ import authRouter from "./routes/authRoutes.js";
 import propertyRouter from "./routes/propertyRoutes.js";
 import connectCloudinary from "./config/cloudinary.js";
 import paymentRouter from "./routes/paymentRoutes.js";
+import dns from "dns";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+
+dns.setServers(["1.1.1.1","8.8.8.8"])
 
 // middleware
 app.use(cors());
