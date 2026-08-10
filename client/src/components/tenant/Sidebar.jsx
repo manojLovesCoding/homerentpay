@@ -12,7 +12,6 @@ const Sidebar = () => {
     { label: "Dashboard", path: "" },
     { label: "My Property", path: "property" },
     { label: "Monthly Rent", path: "rent" },
-    { label: "Pay Rent", path: "pay" },
     { label: "Payment History", path: "history" },
   ];
 

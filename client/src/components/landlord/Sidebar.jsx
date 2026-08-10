@@ -15,8 +15,7 @@ const LandlordSidebar = () => {
     { label: "Tenants", path: "tenants" },
     { label: "Assigned Tenants", path: "assigned-tenants" },
     { label: "Payments", path: "payments" },
-    { label: "Reports", path: "reports" },
-    { label: "Profile", path: "profile" },
+
   ];
 
   const handleLogout = () => {

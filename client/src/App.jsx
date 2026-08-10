@@ -80,7 +80,7 @@ const App = () => {
             <Route index element={<TenantDashboard />} />
             <Route path="property" element={<PropertyDetails />} />
             <Route path="rent" element={<RentStatus />} />
-            <Route path="pay" element={<PaymentPage />} />
+            {/* <Route path="pay" element={<PaymentPage />} /> */}  
             <Route path="history" element={<PaymentHistory />} />
             <Route path="receipt" element={<PaymentReceipt />} />
           </Route>
@@ -109,8 +109,8 @@ const App = () => {
             />
 
             <Route path="payments" element={<Payments />} />
-            <Route path="reports" element={<Reports />} />
-            <Route path="profile" element={<Profile />} />
+            {/* <Route path="reports" element={<Reports />} />
+            <Route path="profile" element={<Profile />} /> */}
           </Route>
         </Route>
 
@@ -121,7 +121,7 @@ const App = () => {
             <Route path="users" element={<Users />} />
             <Route path="properties" element={<AdminProperties />} />
             <Route path="payments" element={<AdminPayments />} />
-            <Route path="reports" element={<AdminReports />} />
+            {/* <Route path="reports" element={<AdminReports />} /> */}
           </Route>
         </Route>
       </Routes>

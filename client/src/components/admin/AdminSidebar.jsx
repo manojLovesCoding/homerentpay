@@ -13,7 +13,6 @@ const AdminSidebar = () => {
     { label: "Users", path: "users" },
     { label: "Properties", path: "properties" },
     { label: "Payments", path: "payments" },
-    { label: "Reports", path: "reports" },
   ];
 
   const handleLogout = () => {
