@@ -1,15 +1,16 @@
+import React from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/tenant/Sidebar";
 
 const TenantLayout = () => {
   return (
-    <div className="flex min-h-screen bg-gray-100">
-  <Sidebar />
+    <div className="min-h-screen bg-slate-50">
+      <Sidebar />
 
-  <main className="flex-1 pt-16 md:pt-0">
-    <Outlet />
-  </main>
-</div>
+      <main className="min-h-screen pt-16 md:ml-64 md:pt-0">
+        <Outlet />
+      </main>
+    </div>
   );
 };
 

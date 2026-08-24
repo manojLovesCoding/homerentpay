@@ -4,12 +4,12 @@ import LandlordSidebar from "../components/landlord/Sidebar";
 
 const LandlordLayout = () => {
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Fixed Sidebar */}
+    <div className="min-h-screen bg-slate-50">
+      {/* Sidebar */}
       <LandlordSidebar />
 
-      {/* Main Content */}
-      <main className="md:ml-64 min-h-screen pt-16 md:pt-0 overflow-y-auto">
+      {/* Main content */}
+      <main className="min-h-screen overflow-x-hidden pt-16 md:ml-64 md:pt-0">
         <Outlet />
       </main>
     </div>
