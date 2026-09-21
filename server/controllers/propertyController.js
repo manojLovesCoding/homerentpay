@@ -50,7 +50,10 @@ export const addProperty = async (req, res) => {
 
 export const getProperties = async (req, res) => {
   try {
-    const properties = await Property.find()
+    // Check if the user is a landlord, filter by their ID. Admins can see all.
+    const filter = req.user.role === "admin" ? {} : { landlord: req.user.id };
+
+    const properties = await Property.find(filter)
       .populate("landlord", "name email phone")
       .populate("tenant", "name email phone");
 
@@ -58,7 +61,6 @@ export const getProperties = async (req, res) => {
       success: true,
       properties,
     });
-
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -267,8 +269,8 @@ export const removeTenant = async (req, res) => {
     }
 
     property.tenant = null;
-property.status = "available";
-property.dueDate = null;
+    property.status = "available";
+    property.dueDate = null;
 
     await property.save();
 
@@ -319,9 +321,7 @@ export const getTenantProperty = async (req, res) => {
         path: "landlord",
         select: "name email phone",
       })
-      .select(
-        "title address city rent image status landlord dueDate"
-      );
+      .select("title address city rent image status landlord dueDate");
 
     if (!property) {
       return res.status(404).json({
@@ -334,14 +334,11 @@ export const getTenantProperty = async (req, res) => {
       success: true,
       property,
     });
-
   } catch (error) {
-
     res.status(500).json({
       success: false,
       message: error.message,
     });
-
   }
 };
 
@@ -371,7 +368,6 @@ export const getPaymentStatus = async (req, res) => {
     });
   }
 };
-
 
 export const getPendingRent = async (req, res) => {
   try {
@@ -423,7 +419,6 @@ export const getPendingRent = async (req, res) => {
       dueDate: property.dueDate,
       message: "Rent payment pending",
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
