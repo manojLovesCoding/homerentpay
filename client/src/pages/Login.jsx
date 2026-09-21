@@ -86,11 +86,11 @@ const Login = () => {
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3 text-white">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-xl font-bold text-blue-600 shadow-lg">
-                R
+                V
               </div>
 
               <div>
-                <p className="text-lg font-bold">RentalHub</p>
+                <p className="text-lg font-bold">Vayuhu</p>
 
                 <p className="text-xs text-blue-100">Rental Management</p>
               </div>
@@ -143,7 +143,7 @@ const Login = () => {
 
             {/* Footer */}
             <p className="text-sm text-blue-100/50">
-              © 2026 RentalHub. All rights reserved.
+              © 2026 Vayuhu. All rights reserved.
             </p>
           </div>
         </div>
@@ -157,11 +157,11 @@ const Login = () => {
             <div className="mb-8 text-center lg:hidden">
               <Link to="/" className="inline-flex items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-xl font-bold text-white shadow-lg shadow-blue-600/20">
-                  R
+                  V
                 </div>
 
                 <div className="text-left">
-                  <p className="text-lg font-bold text-slate-900">RentalHub</p>
+                  <p className="text-lg font-bold text-slate-900">Vayuhu</p>
 
                   <p className="text-xs text-slate-500">Rental Management</p>
                 </div>

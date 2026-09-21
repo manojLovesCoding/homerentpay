@@ -71,7 +71,7 @@ const LandlordSidebar = () => {
           </div>
 
           <span className="font-bold text-slate-900">
-            Rent<span className="text-blue-600">Flow</span>
+            Vayuhu
           </span>
         </div>
 
@@ -117,7 +117,7 @@ const LandlordSidebar = () => {
 
             <div className="min-w-0">
               <h1 className="truncate text-lg font-extrabold tracking-tight text-slate-900">
-                Rent<span className="text-blue-600">Flow</span>
+                Vayuhu
               </h1>
 
               <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
@@ -278,7 +278,7 @@ const LandlordSidebar = () => {
             </div>
 
             <p className="mt-2 text-[10px] text-slate-400">
-              © {new Date().getFullYear()} RentFlow
+              © {new Date().getFullYear()} Vayuhu
             </p>
           </div>
         </div>

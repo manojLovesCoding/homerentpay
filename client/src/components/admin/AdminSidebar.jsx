@@ -275,7 +275,7 @@ const AdminSidebar = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-semibold text-slate-600">
-                  Rent System
+                  Vayuhu
                 </p>
 
                 <p className="text-[10px] text-slate-400 mt-0.5">
@@ -290,7 +290,7 @@ const AdminSidebar = () => {
           </div>
 
           <p className="text-[10px] text-center text-slate-400 mt-3">
-            © {new Date().getFullYear()} Rent System
+            © {new Date().getFullYear()} Vayuhu
           </p>
         </div>
       </aside>
