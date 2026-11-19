@@ -8,6 +8,7 @@ import propertyRouter from "./routes/propertyRoutes.js";
 import connectCloudinary from "./config/cloudinary.js";
 import paymentRouter from "./routes/paymentRoutes.js";
 import dns from "dns";
+import inquiryRouter from "./routes/inquiryRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -27,6 +28,7 @@ app.get("/", (req, res) => res.send("server is running"));
 app.use("/api/auth", authRouter);
 app.use("/api/property", propertyRouter);
 app.use("/api/payment", paymentRouter);
+app.use("/api/inquiry", inquiryRouter);
 
 await connectDB();
 connectCloudinary();
