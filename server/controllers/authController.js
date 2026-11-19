@@ -117,15 +117,12 @@ export const login = async (req, res) => {
 
 export const getUsers = async (req, res) => {
   try {
-    const users = await User.find()
-      .select("-password")
-      .sort({ createdAt: -1 });
+    const users = await User.find().select("-password").sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
       users,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -302,6 +299,222 @@ export const updateTenantPassword = async (req, res) => {
     res.status(500).json({
       success: false,
       message: err.message,
+    });
+  }
+};
+
+export const createLandlord = async (req, res) => {
+  try {
+    const { name, email, phone, password } = req.body;
+
+    if (!name || !email || !phone || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters",
+      });
+    }
+
+    const existingUser = await User.findOne({
+      $or: [{ email }, { phone }],
+    });
+
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: "Email or phone number already exists",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const landlord = await User.create({
+      name,
+      email,
+      phone,
+      password: hashedPassword,
+      role: "landlord",
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Landlord created successfully",
+      landlord: {
+        id: landlord._id,
+        name: landlord.name,
+        email: landlord.email,
+        phone: landlord.phone,
+        role: landlord.role,
+        isActive: landlord.isActive,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// GET ALL LANDLORDS
+export const getLandlords = async (req, res) => {
+  try {
+    const landlords = await User.find({
+      role: "landlord",
+    })
+      .select("-password")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      total: landlords.length,
+      landlords,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// UPDATE LANDLORD DETAILS
+export const updateLandlord = async (req, res) => {
+  try {
+    const { name, email, phone } = req.body;
+
+    if (!name || !email || !phone) {
+      return res.status(400).json({
+        success: false,
+        message: "Name, email and phone are required",
+      });
+    }
+
+    const landlord = await User.findOne({
+      _id: req.params.id,
+      role: "landlord",
+    });
+
+    if (!landlord) {
+      return res.status(404).json({
+        success: false,
+        message: "Landlord not found",
+      });
+    }
+
+    const existingUser = await User.findOne({
+      _id: { $ne: landlord._id },
+      $or: [{ email }, { phone }],
+    });
+
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: "Email or phone number already exists",
+      });
+    }
+
+    landlord.name = name;
+    landlord.email = email;
+    landlord.phone = phone;
+
+    await landlord.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Landlord updated successfully",
+      landlord: {
+        id: landlord._id,
+        name: landlord.name,
+        email: landlord.email,
+        phone: landlord.phone,
+        role: landlord.role,
+        isActive: landlord.isActive,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// DEACTIVATE LANDLORD
+export const deactivateLandlord = async (req, res) => {
+  try {
+    const landlord = await User.findOne({
+      _id: req.params.id,
+      role: "landlord",
+    });
+
+    if (!landlord) {
+      return res.status(404).json({
+        success: false,
+        message: "Landlord not found",
+      });
+    }
+
+    landlord.isActive = false;
+
+    await landlord.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Landlord deactivated successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// UPDATE LANDLORD PASSWORD
+export const updateLandlordPassword = async (req, res) => {
+  try {
+    const { password } = req.body;
+
+    if (!password || password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters",
+      });
+    }
+
+    const landlord = await User.findOne({
+      _id: req.params.id,
+      role: "landlord",
+    });
+
+    if (!landlord) {
+      return res.status(404).json({
+        success: false,
+        message: "Landlord not found",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    landlord.password = hashedPassword;
+
+    await landlord.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Landlord password updated successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
     });
   }
 };

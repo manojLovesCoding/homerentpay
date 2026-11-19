@@ -8,6 +8,11 @@ import {
   updateTenant,
   updateTenantPassword,
   getUsers,
+  createLandlord,
+  getLandlords,
+  updateLandlord,
+  deactivateLandlord,
+  updateLandlordPassword,
 } from "../controllers/authController.js";
 import { verifyToken } from "../middleware/auth.js";
 import { authorizeRoles } from "../middleware/role.js";
@@ -57,5 +62,47 @@ authRouter.put(
   authorizeRoles("admin", "landlord"),
   updateTenantPassword,
 );
+
+
+// ADMIN - CREATE LANDLORD
+authRouter.post(
+  "/create-landlord",
+  verifyToken,
+  authorizeRoles("admin"),
+  createLandlord
+);
+
+// ADMIN - GET ALL LANDLORDS
+authRouter.get(
+  "/landlords",
+  verifyToken,
+  authorizeRoles("admin"),
+  getLandlords
+);
+
+// ADMIN - UPDATE LANDLORD
+authRouter.put(
+  "/landlord/:id",
+  verifyToken,
+  authorizeRoles("admin"),
+  updateLandlord
+);
+
+// ADMIN - DEACTIVATE LANDLORD
+authRouter.patch(
+  "/landlord/:id/deactivate",
+  verifyToken,
+  authorizeRoles("admin"),
+  deactivateLandlord
+);
+
+// ADMIN - UPDATE LANDLORD PASSWORD
+authRouter.put(
+  "/landlord/:id/password",
+  verifyToken,
+  authorizeRoles("admin"),
+  updateLandlordPassword
+);
+
 
 export default authRouter;
