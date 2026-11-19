@@ -40,6 +40,7 @@ import EditTenant from "./pages/landloard/EditTenant";
 import UpdateTenantPassword from "./pages/landloard/UpdateTenantPassword";
 import AssignTenant from "./pages/landloard/AssignTenant";
 import AssignedTenants from "./pages/landloard/AssignedTenants";
+import LandlordInquiries from "./pages/landloard/LandlordInquiries";
 
 const App = () => {
   return (
@@ -80,7 +81,7 @@ const App = () => {
             <Route index element={<TenantDashboard />} />
             <Route path="property" element={<PropertyDetails />} />
             <Route path="rent" element={<RentStatus />} />
-            {/* <Route path="pay" element={<PaymentPage />} /> */}  
+            {/* <Route path="pay" element={<PaymentPage />} /> */}
             <Route path="history" element={<PaymentHistory />} />
             <Route path="receipt" element={<PaymentReceipt />} />
           </Route>
@@ -94,23 +95,27 @@ const App = () => {
             <Route path="properties" element={<PropertyList />} />
             <Route path="add-property" element={<AddProperty />} />
             <Route path="property/edit/:id" element={<EditProperty />} />
+
             <Route
               path="property/:id/assign-tenant"
               element={<AssignTenant />}
             />
+
             <Route path="assigned-tenants" element={<AssignedTenants />} />
 
             <Route path="tenants" element={<TenantList />} />
             <Route path="add-tenant" element={<AddTenant />} />
             <Route path="tenant/edit/:id" element={<EditTenant />} />
+
             <Route
               path="tenant/password/:id"
               element={<UpdateTenantPassword />}
             />
 
             <Route path="payments" element={<Payments />} />
-            {/* <Route path="reports" element={<Reports />} />
-            <Route path="profile" element={<Profile />} /> */}
+
+            {/* Property Inquiries */}
+            <Route path="inquiries" element={<LandlordInquiries />} />
           </Route>
         </Route>
 
