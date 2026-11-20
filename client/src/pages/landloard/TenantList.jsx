@@ -1,6 +1,22 @@
+
 import React, { useEffect, useMemo, useState } from "react";
 import api from "../../api/axios.js";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import {
+  Users,
+  UserPlus,
+  Search,
+  RefreshCw,
+  Pencil,
+  KeyRound,
+  Ban,
+  Mail,
+  Phone,
+  X,
+  CheckCircle2,
+  Building2,
+} from "lucide-react";
 
 const TenantList = () => {
   const navigate = useNavigate();
@@ -9,9 +25,12 @@ const TenantList = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [deactivatingId, setDeactivatingId] = useState(null);
 
   const fetchTenants = async () => {
     try {
+      setLoading(true);
+
       const token = localStorage.getItem("token");
 
       const res = await api.get("/auth/tenants", {
@@ -22,7 +41,10 @@ const TenantList = () => {
 
       setTenants(res.data.tenants || []);
     } catch (err) {
-      console.log(err);
+      console.error(err);
+      toast.error(
+        err.response?.data?.message || "Failed to load tenants"
+      );
     } finally {
       setLoading(false);
     }
@@ -32,18 +54,52 @@ const TenantList = () => {
     fetchTenants();
   }, []);
 
-  /* ============================================================
-     DEACTIVATE TENANT
-  ============================================================ */
+  /* DEACTIVATE TENANT */
 
   const handleDeactivate = async (id) => {
-    const confirmDeactivate = window.confirm(
-      "Are you sure you want to deactivate this tenant?",
+    const confirmToast = toast(
+      (t) => (
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-[#242B26]">
+              Deactivate this tenant?
+            </p>
+            <p className="mt-0.5 text-xs text-[#68756A]">
+              The tenant account will become inactive.
+            </p>
+          </div>
+
+          <button
+            onClick={() => {
+              toast.dismiss(t.id);
+              confirmDeactivate(id);
+            }}
+            className="rounded-lg bg-rose-600 px-3 py-2 text-xs font-semibold text-white hover:bg-rose-700"
+          >
+            Confirm
+          </button>
+
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="rounded-lg border border-[#E6E3D9] px-3 py-2 text-xs font-semibold text-[#526056] hover:bg-[#F7F4EA]"
+          >
+            Cancel
+          </button>
+        </div>
+      ),
+      {
+        duration: Infinity,
+        position: "top-center",
+      }
     );
 
-    if (!confirmDeactivate) return;
+    return confirmToast;
+  };
 
+  const confirmDeactivate = async (id) => {
     try {
+      setDeactivatingId(id);
+
       const token = localStorage.getItem("token");
 
       await api.patch(
@@ -53,33 +109,32 @@ const TenantList = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        },
+        }
       );
 
       setTenants((prev) =>
         prev.map((tenant) =>
           tenant._id === id
-            ? {
-                ...tenant,
-                isActive: false,
-              }
-            : tenant,
-        ),
+            ? { ...tenant, isActive: false }
+            : tenant
+        )
       );
 
-      alert("Tenant deactivated successfully");
+      toast.success("Tenant deactivated successfully");
     } catch (err) {
-      alert(err.response?.data?.message || "Deactivate failed");
+      toast.error(
+        err.response?.data?.message || "Deactivate failed"
+      );
+    } finally {
+      setDeactivatingId(null);
     }
   };
 
-  /* ============================================================
-     FILTER TENANTS
-  ============================================================ */
+  /* FILTER TENANTS */
 
   const filteredTenants = useMemo(() => {
     return tenants.filter((tenant) => {
-      const searchText = search.toLowerCase();
+      const searchText = search.toLowerCase().trim();
 
       const matchesSearch =
         tenant.name?.toLowerCase().includes(searchText) ||
@@ -95,455 +150,409 @@ const TenantList = () => {
     });
   }, [tenants, search, statusFilter]);
 
-  const activeCount = tenants.filter((tenant) => tenant.isActive).length;
+  const activeCount = tenants.filter(
+    (tenant) => tenant.isActive
+  ).length;
 
   const inactiveCount = tenants.length - activeCount;
 
-  /* ============================================================
-     LOADING
-  ============================================================ */
+  /* LOADING */
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
-        <div className="mx-auto max-w-6xl">
-          {/* Header skeleton */}
-          <div className="mb-8 h-48 animate-pulse rounded-3xl bg-slate-200" />
+      <div className="space-y-4">
+        <div className="h-24 animate-pulse rounded-xl bg-[#E8ECE5]" />
 
-          {/* Filter skeleton */}
-          <div className="mb-6 h-20 animate-pulse rounded-3xl bg-slate-200" />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {[1, 2, 3].map((item) => (
+            <div
+              key={item}
+              className="h-20 animate-pulse rounded-xl bg-[#E8ECE5]"
+            />
+          ))}
+        </div>
 
-          {/* Table skeleton */}
-          <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
-            {[1, 2, 3, 4, 5].map((item) => (
-              <div
-                key={item}
-                className="flex animate-pulse items-center gap-5 border-b border-slate-100 p-5"
-              >
-                <div className="h-11 w-11 rounded-full bg-slate-200" />
+        <div className="h-12 animate-pulse rounded-xl bg-[#E8ECE5]" />
 
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 w-1/4 rounded bg-slate-200" />
-                  <div className="h-3 w-1/3 rounded bg-slate-100" />
-                </div>
-
-                <div className="h-8 w-20 rounded bg-slate-200" />
-              </div>
-            ))}
-          </div>
+        <div className="overflow-hidden rounded-xl border border-[#E6E3D9] bg-white">
+          {[1, 2, 3, 4].map((item) => (
+            <div
+              key={item}
+              className="h-14 animate-pulse border-b border-[#EEECE4] bg-white"
+            />
+          ))}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
-      <div className="mx-auto max-w-6xl">
-        {/* =====================================================
-            HEADER
-        ====================================================== */}
+    <div className="space-y-4 text-[#242B26]">
 
-        <div className="relative mb-6 overflow-hidden rounded-3xl bg-gradient-to-r from-blue-700 via-indigo-700 to-violet-700 p-6 shadow-xl shadow-blue-900/10 sm:p-8">
-          {/* Decorations */}
+      {/* HEADER */}
 
-          <div className="absolute -right-20 -top-32 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
+      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EAF0E8] text-[#244B3C]">
+            <Users size={20} />
+          </div>
 
-          <div className="absolute -bottom-32 -left-20 h-80 w-80 rounded-full bg-indigo-950/20 blur-3xl" />
-
-          <div className="relative">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-              <div>
-                {/* Badge */}
-
-                <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-semibold text-blue-100 backdrop-blur">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                  Tenant Management
-                </div>
-
-                <h1 className="mt-4 text-3xl font-bold text-white sm:text-4xl">
-                  Tenant Management
-                </h1>
-
-                <p className="mt-2 max-w-xl text-sm leading-6 text-blue-100/80 sm:text-base">
-                  Manage your tenants, view their details and control account
-                  access from one place.
-                </p>
-              </div>
-
-              {/* Add button */}
-
-              <button
-                onClick={() => navigate("/landlord/add-tenant")}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-blue-700 shadow-lg transition hover:bg-blue-50 sm:w-auto"
-              >
-                <span className="text-lg">+</span>
-                Add Tenant
-              </button>
-            </div>
-
-            {/* Stats */}
-
-            <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {/* Total */}
-
-              <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
-                <p className="text-xs text-blue-100/70">Total Tenants</p>
-
-                <p className="mt-1 text-2xl font-bold text-white">
-                  {tenants.length}
-                </p>
-              </div>
-
-              {/* Active */}
-
-              <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
-                <p className="text-xs text-blue-100/70">Active</p>
-
-                <p className="mt-1 text-2xl font-bold text-emerald-300">
-                  {activeCount}
-                </p>
-              </div>
-
-              {/* Inactive */}
-
-              <div className="col-span-2 rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur sm:col-span-1">
-                <p className="text-xs text-blue-100/70">Inactive</p>
-
-                <p className="mt-1 text-2xl font-bold text-rose-300">
-                  {inactiveCount}
-                </p>
-              </div>
-            </div>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-[#242B26]">
+              Tenant Management
+            </h1>
+            <p className="mt-0.5 text-xs text-[#68756A]">
+              Manage tenant accounts and access.
+            </p>
           </div>
         </div>
 
-        {/* =====================================================
-            SEARCH + FILTER
-        ====================================================== */}
+        <div className="flex gap-2">
+          <button
+            onClick={fetchTenants}
+            disabled={loading}
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[#E6E3D9] bg-white px-3 py-2 text-xs font-semibold text-[#244B3C] transition hover:bg-[#F7F4EA] disabled:opacity-50"
+          >
+            <RefreshCw size={14} />
+            Refresh
+          </button>
 
-        <div className="mb-6 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-          <div className="flex flex-col gap-3 md:flex-row">
-            {/* Search */}
-
-            <div className="relative flex-1">
-              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                🔍
-              </span>
-
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by name, email or phone..."
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
-              />
-            </div>
-
-            {/* Status filter */}
-
-            <div className="relative md:w-48">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
-              >
-                <option value="all">All Tenants</option>
-
-                <option value="active">Active Only</option>
-
-                <option value="inactive">Inactive Only</option>
-              </select>
-
-              <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
-                ▼
-              </span>
-            </div>
-          </div>
-
-          {/* Results count */}
-
-          <div className="mt-3 flex items-center justify-between text-xs">
-            <p className="text-slate-400">
-              Showing{" "}
-              <span className="font-semibold text-slate-700">
-                {filteredTenants.length}
-              </span>{" "}
-              of{" "}
-              <span className="font-semibold text-slate-700">
-                {tenants.length}
-              </span>{" "}
-              tenants
-            </p>
-
-            {(search || statusFilter !== "all") && (
-              <button
-                onClick={() => {
-                  setSearch("");
-                  setStatusFilter("all");
-                }}
-                className="font-semibold text-blue-600 hover:text-blue-700"
-              >
-                Clear filters
-              </button>
-            )}
-          </div>
+          <button
+            onClick={() => navigate("/landlord/add-tenant")}
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#244B3C] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#193A2E]"
+          >
+            <UserPlus size={15} />
+            Add Tenant
+          </button>
         </div>
-
-        {/* =====================================================
-            EMPTY STATE
-        ====================================================== */}
-
-        {filteredTenants.length === 0 ? (
-          <div className="rounded-3xl border border-slate-200 bg-white px-6 py-16 text-center shadow-sm">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-blue-50 text-4xl">
-              👥
-            </div>
-
-            <h2 className="mt-6 text-xl font-bold text-slate-900">
-              No tenants found
-            </h2>
-
-            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
-              {search || statusFilter !== "all"
-                ? "Try changing your search or filter to find a tenant."
-                : "You don't have any tenants yet. Add your first tenant to get started."}
-            </p>
-
-            {!search && statusFilter === "all" && (
-              <button
-                onClick={() => navigate("/landlord/add-tenant")}
-                className="mt-6 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-500"
-              >
-                + Add Your First Tenant
-              </button>
-            )}
-          </div>
-        ) : (
-          <>
-            {/* =================================================
-                DESKTOP TABLE
-            ================================================== */}
-
-            <div className="hidden overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm md:block">
-              {/* Table header */}
-
-              <div className="grid grid-cols-[1.3fr_1.5fr_1fr_0.8fr_1.5fr] gap-4 bg-slate-50 px-6 py-4">
-                <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Tenant
-                </div>
-
-                <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Email
-                </div>
-
-                <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Phone
-                </div>
-
-                <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Status
-                </div>
-
-                <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Actions
-                </div>
-              </div>
-
-              {/* Table rows */}
-
-              {filteredTenants.map((tenant) => (
-                <div
-                  key={tenant._id}
-                  className="grid grid-cols-[1.3fr_1.5fr_1fr_0.8fr_1.5fr] items-center gap-4 border-t border-slate-100 px-6 py-5 transition hover:bg-blue-50/40"
-                >
-                  {/* Tenant */}
-
-                  <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-sm font-bold text-white shadow-md shadow-blue-600/20">
-                      {tenant.name?.charAt(0)?.toUpperCase() || "T"}
-                    </div>
-
-                    <div className="min-w-0">
-                      <p className="truncate font-bold text-slate-800">
-                        {tenant.name}
-                      </p>
-
-                      <p className="mt-0.5 text-xs text-slate-400">Tenant</p>
-                    </div>
-                  </div>
-
-                  {/* Email */}
-
-                  <div className="min-w-0">
-                    <p className="truncate text-sm text-slate-600">
-                      {tenant.email}
-                    </p>
-                  </div>
-
-                  {/* Phone */}
-
-                  <div>
-                    <p className="text-sm text-slate-600">
-                      {tenant.phone || "—"}
-                    </p>
-                  </div>
-
-                  {/* Status */}
-
-                  <div>
-                    <span
-                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ${
-                        tenant.isActive
-                          ? "bg-emerald-50 text-emerald-600"
-                          : "bg-rose-50 text-rose-600"
-                      }`}
-                    >
-                      <span
-                        className={`h-1.5 w-1.5 rounded-full ${
-                          tenant.isActive ? "bg-emerald-500" : "bg-rose-500"
-                        }`}
-                      />
-
-                      {tenant.isActive ? "Active" : "Inactive"}
-                    </span>
-                  </div>
-
-                  {/* Actions */}
-
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      onClick={() =>
-                        navigate(`/landlord/tenant/edit/${tenant._id}`)
-                      }
-                      className="rounded-lg bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700 transition hover:bg-amber-100"
-                    >
-                      Edit
-                    </button>
-
-                    <button
-                      onClick={() =>
-                        navigate(`/landlord/tenant/password/${tenant._id}`)
-                      }
-                      className="rounded-lg bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 transition hover:bg-blue-100"
-                    >
-                      Password
-                    </button>
-
-                    {tenant.isActive && (
-                      <button
-                        onClick={() => handleDeactivate(tenant._id)}
-                        className="rounded-lg bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-100"
-                      >
-                        Deactivate
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* =================================================
-                MOBILE CARDS
-            ================================================== */}
-
-            <div className="grid grid-cols-1 gap-4 md:hidden">
-              {filteredTenants.map((tenant) => (
-                <div
-                  key={tenant._id}
-                  className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:shadow-lg"
-                >
-                  {/* Card header */}
-
-                  <div className="flex items-center gap-4 p-5">
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-lg font-bold text-white shadow-lg shadow-blue-600/20">
-                      {tenant.name?.charAt(0)?.toUpperCase() || "T"}
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <h2 className="truncate font-bold text-slate-900">
-                        {tenant.name}
-                      </h2>
-
-                      <p className="mt-1 truncate text-sm text-slate-500">
-                        {tenant.email}
-                      </p>
-                    </div>
-
-                    <span
-                      className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold ${
-                        tenant.isActive
-                          ? "bg-emerald-50 text-emerald-600"
-                          : "bg-rose-50 text-rose-600"
-                      }`}
-                    >
-                      {tenant.isActive ? "ACTIVE" : "INACTIVE"}
-                    </span>
-                  </div>
-
-                  {/* Details */}
-
-                  <div className="grid grid-cols-2 gap-3 border-y border-slate-100 bg-slate-50 p-4">
-                    <div className="rounded-xl bg-white p-3">
-                      <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                        Phone
-                      </p>
-
-                      <p className="mt-1 truncate text-sm font-medium text-slate-700">
-                        {tenant.phone || "Not provided"}
-                      </p>
-                    </div>
-
-                    <div className="rounded-xl bg-white p-3">
-                      <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                        Account
-                      </p>
-
-                      <p
-                        className={`mt-1 text-sm font-semibold ${
-                          tenant.isActive ? "text-emerald-600" : "text-rose-600"
-                        }`}
-                      >
-                        {tenant.isActive ? "Active" : "Inactive"}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-
-                  <div className="grid grid-cols-2 gap-2 p-4">
-                    <button
-                      onClick={() =>
-                        navigate(`/landlord/tenant/edit/${tenant._id}`)
-                      }
-                      className="rounded-xl bg-amber-50 px-3 py-2.5 text-xs font-semibold text-amber-700 transition hover:bg-amber-100"
-                    >
-                      ✏️ Edit
-                    </button>
-
-                    <button
-                      onClick={() =>
-                        navigate(`/landlord/tenant/password/${tenant._id}`)
-                      }
-                      className="rounded-xl bg-blue-50 px-3 py-2.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100"
-                    >
-                      🔑 Password
-                    </button>
-
-                    {tenant.isActive && (
-                      <button
-                        onClick={() => handleDeactivate(tenant._id)}
-                        className="col-span-2 rounded-xl bg-rose-50 px-3 py-2.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-100"
-                      >
-                        🚫 Deactivate Tenant
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
       </div>
+
+      {/* SUMMARY */}
+
+      <div className="grid grid-cols-3 gap-2.5">
+        <div className="rounded-xl border border-[#E6E3D9] bg-white p-3">
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-medium text-[#68756A]">
+              Total Tenants
+            </p>
+            <Users size={15} className="text-[#527C61]" />
+          </div>
+          <p className="mt-1 text-xl font-bold text-[#244B3C]">
+            {tenants.length}
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-[#E6E3D9] bg-white p-3">
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-medium text-[#68756A]">
+              Active
+            </p>
+            <CheckCircle2 size={15} className="text-[#527C61]" />
+          </div>
+          <p className="mt-1 text-xl font-bold text-[#527C61]">
+            {activeCount}
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-[#E6E3D9] bg-white p-3">
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-medium text-[#68756A]">
+              Inactive
+            </p>
+            <Ban size={15} className="text-[#B66A5C]" />
+          </div>
+          <p className="mt-1 text-xl font-bold text-[#B66A5C]">
+            {inactiveCount}
+          </p>
+        </div>
+      </div>
+
+      {/* SEARCH AND FILTER */}
+
+      <div className="rounded-xl border border-[#E6E3D9] bg-white p-3">
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <div className="relative flex-1">
+            <Search
+              size={16}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#89928A]"
+            />
+
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search name, email or phone..."
+              className="w-full rounded-lg border border-[#E6E3D9] bg-[#FAFAF7] py-2 pl-9 pr-3 text-xs text-[#242B26] outline-none transition placeholder:text-[#A0A79F] focus:border-[#527C61] focus:bg-white focus:ring-2 focus:ring-[#527C61]/10"
+            />
+          </div>
+
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="rounded-lg border border-[#E6E3D9] bg-[#FAFAF7] px-3 py-2 text-xs font-medium text-[#526056] outline-none focus:border-[#527C61] sm:w-40"
+          >
+            <option value="all">All Tenants</option>
+            <option value="active">Active Only</option>
+            <option value="inactive">Inactive Only</option>
+          </select>
+        </div>
+
+        <div className="mt-2 flex items-center justify-between">
+          <p className="text-[11px] text-[#89928A]">
+            Showing{" "}
+            <span className="font-semibold text-[#244B3C]">
+              {filteredTenants.length}
+            </span>{" "}
+            of {tenants.length} tenants
+          </p>
+
+          {(search || statusFilter !== "all") && (
+            <button
+              onClick={() => {
+                setSearch("");
+                setStatusFilter("all");
+              }}
+              className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#527C61] hover:text-[#244B3C]"
+            >
+              <X size={12} />
+              Clear filters
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* EMPTY STATE */}
+
+      {filteredTenants.length === 0 ? (
+        <div className="rounded-xl border border-[#E6E3D9] bg-white px-4 py-10 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[#EAF0E8] text-[#527C61]">
+            <Users size={23} />
+          </div>
+
+          <h2 className="mt-3 text-base font-bold text-[#242B26]">
+            No tenants found
+          </h2>
+
+          <p className="mx-auto mt-1 max-w-sm text-xs text-[#68756A]">
+            {search || statusFilter !== "all"
+              ? "Try changing your search or status filter."
+              : "You don't have any tenants yet. Add your first tenant to get started."}
+          </p>
+
+          {!search && statusFilter === "all" && (
+            <button
+              onClick={() => navigate("/landlord/add-tenant")}
+              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#244B3C] px-4 py-2 text-xs font-semibold text-white hover:bg-[#193A2E]"
+            >
+              <UserPlus size={14} />
+              Add First Tenant
+            </button>
+          )}
+        </div>
+      ) : (
+        <>
+          {/* DESKTOP TABLE */}
+
+          <div className="hidden overflow-hidden rounded-xl border border-[#E6E3D9] bg-white md:block">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[850px] text-left">
+                <thead className="bg-[#F7F4EA]">
+                  <tr className="text-[10px] font-bold uppercase tracking-wide text-[#68756A]">
+                    <th className="px-4 py-3">Tenant</th>
+                    <th className="px-4 py-3">Email</th>
+                    <th className="px-4 py-3">Phone</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Actions</th>
+                  </tr>
+                </thead>
+
+                <tbody className="divide-y divide-[#EEECE4]">
+                  {filteredTenants.map((tenant) => (
+                    <tr
+                      key={tenant._id}
+                      className="transition hover:bg-[#FAFAF6]"
+                    >
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#EAF0E8] text-xs font-bold text-[#244B3C]">
+                            {tenant.name?.charAt(0)?.toUpperCase() || "T"}
+                          </div>
+
+                          <div className="min-w-0">
+                            <p className="max-w-[160px] truncate text-xs font-semibold text-[#242B26]">
+                              {tenant.name || "Unnamed Tenant"}
+                            </p>
+                            <p className="text-[10px] text-[#89928A]">
+                              Tenant
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <p className="max-w-[190px] truncate text-xs text-[#526056]">
+                          {tenant.email || "—"}
+                        </p>
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <p className="text-xs text-[#526056]">
+                          {tenant.phone || "—"}
+                        </p>
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold ${
+                            tenant.isActive
+                              ? "bg-[#EAF0E8] text-[#527C61]"
+                              : "bg-[#FCEDEA] text-[#B66A5C]"
+                          }`}
+                        >
+                          <span
+                            className={`h-1.5 w-1.5 rounded-full ${
+                              tenant.isActive
+                                ? "bg-[#527C61]"
+                                : "bg-[#B66A5C]"
+                            }`}
+                          />
+                          {tenant.isActive ? "Active" : "Inactive"}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap gap-1.5">
+                          <button
+                            onClick={() =>
+                              navigate(`/landlord/tenant/edit/${tenant._id}`)
+                            }
+                            className="inline-flex items-center gap-1 rounded-md bg-[#F7F4EA] px-2.5 py-1.5 text-[10px] font-semibold text-[#8B642F] transition hover:bg-[#F0E8D5]"
+                          >
+                            <Pencil size={11} />
+                            Edit
+                          </button>
+
+                          <button
+                            onClick={() =>
+                              navigate(
+                                `/landlord/tenant/password/${tenant._id}`
+                              )
+                            }
+                            className="inline-flex items-center gap-1 rounded-md bg-[#EAF0E8] px-2.5 py-1.5 text-[10px] font-semibold text-[#244B3C] transition hover:bg-[#DCE8DA]"
+                          >
+                            <KeyRound size={11} />
+                            Password
+                          </button>
+
+                          {tenant.isActive && (
+                            <button
+                              onClick={() => handleDeactivate(tenant._id)}
+                              disabled={deactivatingId === tenant._id}
+                              className="inline-flex items-center gap-1 rounded-md bg-[#FCEDEA] px-2.5 py-1.5 text-[10px] font-semibold text-[#B66A5C] transition hover:bg-[#F8DFDA] disabled:opacity-50"
+                            >
+                              <Ban size={11} />
+                              {deactivatingId === tenant._id
+                                ? "Please wait"
+                                : "Deactivate"}
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* MOBILE TENANT CARDS */}
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:hidden">
+            {filteredTenants.map((tenant) => (
+              <div
+                key={tenant._id}
+                className="overflow-hidden rounded-xl border border-[#E6E3D9] bg-white"
+              >
+                <div className="flex items-center gap-3 p-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#EAF0E8] text-sm font-bold text-[#244B3C]">
+                    {tenant.name?.charAt(0)?.toUpperCase() || "T"}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <h2 className="truncate text-sm font-bold text-[#242B26]">
+                      {tenant.name || "Unnamed Tenant"}
+                    </h2>
+                    <p className="truncate text-[11px] text-[#68756A]">
+                      {tenant.email || "No email"}
+                    </p>
+                  </div>
+
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-1 text-[9px] font-bold ${
+                      tenant.isActive
+                        ? "bg-[#EAF0E8] text-[#527C61]"
+                        : "bg-[#FCEDEA] text-[#B66A5C]"
+                    }`}
+                  >
+                    {tenant.isActive ? "ACTIVE" : "INACTIVE"}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 border-y border-[#EEECE4] bg-[#FAFAF7] p-3">
+                  <div className="flex items-center gap-2">
+                    <Phone size={13} className="shrink-0 text-[#527C61]" />
+                    <span className="truncate text-[11px] text-[#526056]">
+                      {tenant.phone || "Not provided"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Mail size={13} className="shrink-0 text-[#527C61]" />
+                    <span className="truncate text-[11px] text-[#526056]">
+                      {tenant.email || "No email"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 p-3">
+                  <button
+                    onClick={() =>
+                      navigate(`/landlord/tenant/edit/${tenant._id}`)
+                    }
+                    className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#F7F4EA] px-2 py-2 text-[11px] font-semibold text-[#8B642F] hover:bg-[#F0E8D5]"
+                  >
+                    <Pencil size={13} />
+                    Edit
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      navigate(`/landlord/tenant/password/${tenant._id}`)
+                    }
+                    className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#EAF0E8] px-2 py-2 text-[11px] font-semibold text-[#244B3C] hover:bg-[#DCE8DA]"
+                  >
+                    <KeyRound size={13} />
+                    Password
+                  </button>
+
+                  {tenant.isActive && (
+                    <button
+                      onClick={() => handleDeactivate(tenant._id)}
+                      disabled={deactivatingId === tenant._id}
+                      className="col-span-2 inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#FCEDEA] px-2 py-2 text-[11px] font-semibold text-[#B66A5C] hover:bg-[#F8DFDA] disabled:opacity-50"
+                    >
+                      <Ban size={13} />
+                      {deactivatingId === tenant._id
+                        ? "Please wait..."
+                        : "Deactivate Tenant"}
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 };

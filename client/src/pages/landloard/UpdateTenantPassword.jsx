@@ -1,5 +1,16 @@
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import {
+  ArrowLeft,
+  LockKeyhole,
+  ShieldCheck,
+  Eye,
+  EyeOff,
+  CheckCircle2,
+  AlertCircle,
+  KeyRound,
+} from "lucide-react";
+import toast from "react-hot-toast";
 import api from "../../api/axios.js";
 
 const UpdateTenantPassword = () => {
@@ -14,7 +25,7 @@ const UpdateTenantPassword = () => {
     e.preventDefault();
 
     if (password.length < 6) {
-      return alert("Password must be at least 6 characters");
+      return toast.error("Password must be at least 6 characters");
     }
 
     try {
@@ -24,9 +35,7 @@ const UpdateTenantPassword = () => {
 
       await api.put(
         `/auth/tenant/${id}/password`,
-        {
-          password,
-        },
+        { password },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -34,11 +43,10 @@ const UpdateTenantPassword = () => {
         },
       );
 
-      alert("Password updated successfully");
-
+      toast.success("Tenant password updated successfully");
       navigate("/landlord/tenants");
     } catch (err) {
-      alert(err.response?.data?.message || "Password update failed");
+      toast.error(err.response?.data?.message || "Password update failed");
     } finally {
       setLoading(false);
     }
@@ -53,174 +61,145 @@ const UpdateTenantPassword = () => {
           ? "Medium"
           : "Strong";
 
+  const strengthWidth =
+    passwordStrength === "Weak"
+      ? "w-1/3"
+      : passwordStrength === "Medium"
+        ? "w-2/3"
+        : "w-full";
+
   const strengthColor =
     passwordStrength === "Weak"
       ? "bg-red-500"
       : passwordStrength === "Medium"
         ? "bg-amber-500"
-        : "bg-emerald-500";
+        : "bg-[#527C61]";
+
+  const strengthText =
+    passwordStrength === "Weak"
+      ? "text-red-500"
+      : passwordStrength === "Medium"
+        ? "text-amber-600"
+        : "text-[#527C61]";
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-[calc(100vh-2rem)] bg-[#F7F8F5] p-3 sm:p-4">
       <div className="mx-auto max-w-4xl">
-        {/* =====================================================
-            HEADER
-        ====================================================== */}
-
-        <div className="mb-6">
+        {/* Header */}
+        <div className="mb-4">
           <button
             type="button"
             onClick={() => navigate("/landlord/tenants")}
-            className="mb-3 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition hover:text-blue-600"
+            className="mb-2 inline-flex items-center gap-2 text-xs font-semibold text-[#68756A] transition hover:text-[#244B3C]"
           >
-            <span className="text-lg">←</span>
+            <ArrowLeft size={15} />
             Back to Tenants
           </button>
 
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+          <h1 className="text-xl font-bold tracking-tight text-[#242B26] sm:text-2xl">
             Update Tenant Password
           </h1>
 
-          <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
-            Create a new secure password for this tenant's account.
+          <p className="mt-1 text-xs text-[#68756A] sm:text-sm">
+            Create a new secure password for the tenant's account.
           </p>
         </div>
 
-        {/* =====================================================
-            MAIN CONTENT
-        ====================================================== */}
-
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[0.85fr_1.3fr]">
-          {/* ===================================================
-              SECURITY PANEL
-          ==================================================== */}
-
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 p-6 shadow-xl shadow-blue-950/10 sm:p-8">
-            {/* Decorative background */}
-
-            <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500/20 blur-3xl" />
-
-            <div className="absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-indigo-500/10 blur-3xl" />
+        {/* Main Content */}
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[0.85fr_1.15fr]">
+          {/* Security Panel */}
+          <div className="relative overflow-hidden rounded-2xl bg-[#244B3C] p-5 text-white shadow-sm">
+            <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[#527C61]/30 blur-3xl" />
+            <div className="absolute -bottom-20 -left-16 h-48 w-48 rounded-full bg-[#D6A45D]/10 blur-3xl" />
 
             <div className="relative">
-              {/* Security badge */}
-
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-semibold text-blue-100 backdrop-blur">
-                <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50" />
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[11px] font-semibold text-[#F7F4EA]">
+                <span className="h-2 w-2 rounded-full bg-[#A8BDA5]" />
                 Secure Account
               </div>
 
-              {/* Lock */}
-
-              <div className="mt-10 flex justify-center">
-                <div className="relative flex h-28 w-28 items-center justify-center rounded-[2rem] border border-white/10 bg-white/10 shadow-2xl backdrop-blur">
-                  <div className="absolute inset-3 rounded-[1.5rem] border border-blue-400/20" />
-
-                  <span className="text-5xl">🔐</span>
+              <div className="my-6 flex justify-center">
+                <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-white/15 bg-white/10">
+                  <LockKeyhole size={38} className="text-[#D6A45D]" />
                 </div>
               </div>
 
-              {/* Text */}
-
-              <div className="mt-7 text-center">
-                <h2 className="text-xl font-bold text-white">
-                  Password Security
-                </h2>
-
-                <p className="mt-2 text-sm leading-6 text-blue-100/60">
+              <div className="text-center">
+                <h2 className="text-lg font-bold">Password Security</h2>
+                <p className="mx-auto mt-1.5 max-w-xs text-xs leading-5 text-[#F7F4EA]/70">
                   Keep tenant accounts protected with a strong and unique
                   password.
                 </p>
               </div>
 
-              {/* Security points */}
-
-              <div className="mt-8 space-y-3">
-                <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
-                    ✓
+              <div className="mt-6 space-y-2.5">
+                <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#A8BDA5]/15 text-[#A8BDA5]">
+                    <CheckCircle2 size={18} />
                   </div>
-
                   <div>
-                    <p className="text-sm font-semibold text-white">
+                    <p className="text-xs font-semibold">
                       Minimum 6 characters
                     </p>
-
-                    <p className="text-xs text-blue-100/50">
+                    <p className="mt-0.5 text-[10px] text-white/55">
                       Longer passwords are recommended
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400">
-                    🔒
+                <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#D6A45D]/15 text-[#D6A45D]">
+                    <ShieldCheck size={18} />
                   </div>
-
                   <div>
-                    <p className="text-sm font-semibold text-white">
-                      Account protected
-                    </p>
-
-                    <p className="text-xs text-blue-100/50">
-                      Password changes are secured
+                    <p className="text-xs font-semibold">Account protected</p>
+                    <p className="mt-0.5 text-[10px] text-white/55">
+                      Secure password update
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Warning */}
-
-              <div className="mt-6 rounded-2xl border border-amber-400/10 bg-amber-400/5 p-4">
-                <p className="text-xs font-bold uppercase tracking-wider text-amber-300/80">
+              <div className="mt-4 rounded-xl border border-[#D6A45D]/20 bg-[#D6A45D]/10 p-3">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[#D6A45D]">
                   Important
                 </p>
-
-                <p className="mt-2 text-xs leading-5 text-blue-100/60">
-                  Make sure the new password is shared with the tenant securely.
-                  Avoid using easily guessable information.
+                <p className="mt-1 text-[11px] leading-5 text-white/65">
+                  Share the new password with the tenant securely. Avoid easily
+                  guessable information.
                 </p>
               </div>
             </div>
           </div>
 
-          {/* ===================================================
-              PASSWORD FORM
-          ==================================================== */}
-
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7 lg:p-8">
-            {/* Form Header */}
-
-            <div className="mb-7 border-b border-slate-100 pb-6">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 text-xl">
-                  🔑
-                </div>
-
-                <div>
-                  <h2 className="font-bold text-slate-900">New Password</h2>
-
-                  <p className="text-xs text-slate-400">
-                    Set a new login password
-                  </p>
-                </div>
+          {/* Password Form */}
+          <div className="rounded-2xl border border-[#E6E3D9] bg-white p-4 shadow-sm sm:p-5">
+            <div className="mb-5 flex items-center gap-3 border-b border-[#E6E3D9] pb-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F7F4EA] text-[#244B3C]">
+                <KeyRound size={19} />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-[#242B26]">
+                  New Password
+                </h2>
+                <p className="text-[11px] text-[#68756A]">
+                  Set a new login password
+                </p>
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* =================================================
-                  PASSWORD
-              ================================================== */}
-
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Password Input */}
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                <label className="mb-1.5 block text-xs font-semibold text-[#526056]">
                   New Password
                 </label>
 
                 <div className="relative">
-                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                    🔒
-                  </span>
+                  <LockKeyhole
+                    size={16}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#A8BDA5]"
+                  />
 
                   <input
                     type={showPassword ? "text" : "password"}
@@ -229,135 +208,105 @@ const UpdateTenantPassword = () => {
                     placeholder="Enter new password"
                     autoComplete="new-password"
                     disabled={loading}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-12 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60"
                     required
+                    minLength={6}
+                    className="w-full rounded-xl border border-[#E6E3D9] bg-[#F7F8F5] py-2.5 pl-10 pr-11 text-sm text-[#242B26] outline-none transition placeholder:text-[#A0A99F] focus:border-[#527C61] focus:bg-white focus:ring-2 focus:ring-[#527C61]/10 disabled:opacity-60"
                   />
 
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-                    tabIndex={-1}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#68756A] transition hover:text-[#244B3C]"
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
                   >
-                    {showPassword ? "Hide" : "Show"}
+                    {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                   </button>
                 </div>
 
-                {/* Password strength */}
-
+                {/* Password Strength */}
                 {password && (
-                  <div className="mt-3">
+                  <div className="mt-2.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium text-slate-400">
+                      <span className="text-[10px] font-medium text-[#68756A]">
                         Password strength
                       </span>
-
-                      <span
-                        className={`text-xs font-bold ${
-                          passwordStrength === "Weak"
-                            ? "text-red-500"
-                            : passwordStrength === "Medium"
-                              ? "text-amber-500"
-                              : "text-emerald-500"
-                        }`}
-                      >
+                      <span className={`text-[10px] font-bold ${strengthText}`}>
                         {passwordStrength}
                       </span>
                     </div>
 
-                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
+                    <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[#E6E3D9]">
                       <div
-                        className={`h-full rounded-full transition-all duration-300 ${strengthColor} ${
-                          passwordStrength === "Weak"
-                            ? "w-1/3"
-                            : passwordStrength === "Medium"
-                              ? "w-2/3"
-                              : "w-full"
-                        }`}
+                        className={`h-full rounded-full transition-all duration-300 ${strengthColor} ${strengthWidth}`}
                       />
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* =================================================
-                  REQUIREMENTS
-              ================================================== */}
-
-              <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
-                <p className="mb-3 text-sm font-bold text-slate-800">
+              {/* Requirements */}
+              <div className="rounded-xl border border-[#E6E3D9] bg-[#F7F8F5] p-3.5">
+                <p className="mb-2.5 text-xs font-bold text-[#242B26]">
                   Password requirements
                 </p>
 
-                <div className="space-y-2.5">
+                <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <span
-                      className={`flex h-5 w-5 items-center justify-center rounded-full text-xs ${
+                    <CheckCircle2
+                      size={15}
+                      className={
                         password.length >= 6
-                          ? "bg-emerald-100 text-emerald-600"
-                          : "bg-slate-200 text-slate-400"
-                      }`}
-                    >
-                      ✓
-                    </span>
-
-                    <span className="text-xs text-slate-500">
+                          ? "text-[#527C61]"
+                          : "text-[#C5CBC4]"
+                      }
+                    />
+                    <span className="text-[11px] text-[#68756A]">
                       At least 6 characters
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <span
-                      className={`flex h-5 w-5 items-center justify-center rounded-full text-xs ${
+                    <CheckCircle2
+                      size={15}
+                      className={
                         password.length >= 10
-                          ? "bg-emerald-100 text-emerald-600"
-                          : "bg-slate-200 text-slate-400"
-                      }`}
-                    >
-                      ✓
-                    </span>
-
-                    <span className="text-xs text-slate-500">
+                          ? "text-[#527C61]"
+                          : "text-[#C5CBC4]"
+                      }
+                    />
+                    <span className="text-[11px] text-[#68756A]">
                       10+ characters recommended
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* =================================================
-                  SECURITY NOTICE
-              ================================================== */}
-
-              <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4">
-                <div className="flex gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-100">
-                    🛡️
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-bold text-blue-900">
-                      Security notice
-                    </p>
-
-                    <p className="mt-1 text-xs leading-5 text-blue-700/70">
-                      Changing the password will update the tenant's login
-                      credentials. Make sure the tenant receives the new
-                      password.
-                    </p>
-                  </div>
+              {/* Security Notice */}
+              <div className="flex gap-3 rounded-xl border border-[#A8BDA5]/40 bg-[#F7F4EA] p-3">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-[#527C61]">
+                  <AlertCircle size={17} />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-[#244B3C]">
+                    Security notice
+                  </p>
+                  <p className="mt-1 text-[11px] leading-5 text-[#68756A]">
+                    Changing the password updates the tenant's login
+                    credentials. Make sure the tenant receives the new password
+                    securely.
+                  </p>
                 </div>
               </div>
 
-              {/* =================================================
-                  ACTIONS
-              ================================================== */}
-
-              <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:justify-end">
+              {/* Actions */}
+              <div className="flex flex-col-reverse gap-2 border-t border-[#E6E3D9] pt-4 sm:flex-row sm:justify-end">
                 <button
                   type="button"
                   onClick={() => navigate("/landlord/tenants")}
                   disabled={loading}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-5 py-3.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+                  className="rounded-xl border border-[#E6E3D9] bg-white px-5 py-2.5 text-xs font-semibold text-[#526056] transition hover:bg-[#F7F8F5] disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -365,7 +314,7 @@ const UpdateTenantPassword = () => {
                 <button
                   type="submit"
                   disabled={loading || password.length < 6}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition hover:from-blue-500 hover:to-indigo-500 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#244B3C] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#193A2E] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {loading ? (
                     <>
@@ -374,7 +323,7 @@ const UpdateTenantPassword = () => {
                     </>
                   ) : (
                     <>
-                      <span>🔐</span>
+                      <LockKeyhole size={15} />
                       Update Password
                     </>
                   )}

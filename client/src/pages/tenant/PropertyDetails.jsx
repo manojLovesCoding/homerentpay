@@ -1,4 +1,16 @@
+
 import { useEffect, useState } from "react";
+import {
+  MapPin,
+  Building2,
+  UserRound,
+  Phone,
+  Home,
+  AlertCircle,
+  RefreshCw,
+  IndianRupee,
+  CheckCircle2,
+} from "lucide-react";
 import api from "../../api/axios.js";
 
 const PropertyDetails = () => {
@@ -21,20 +33,26 @@ const PropertyDetails = () => {
     fetchProperty();
   }, []);
 
-  // Loading
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
-        <div className="max-w-6xl mx-auto animate-pulse">
-          <div className="h-8 w-48 bg-slate-200 rounded-lg mb-8" />
+      <div className="bg-[#F7F8F5] px-3 py-4 sm:px-5">
+        <div className="mx-auto max-w-6xl animate-pulse">
+          <div className="mb-3 h-3 w-24 rounded bg-[#E6E9E1]" />
+          <div className="mb-4 h-7 w-44 rounded bg-[#E6E9E1]" />
 
-          <div className="bg-white rounded-3xl overflow-hidden shadow-sm">
-            <div className="h-64 sm:h-80 lg:h-96 bg-slate-200" />
-
-            <div className="p-6 sm:p-8">
-              <div className="h-8 w-2/3 bg-slate-200 rounded mb-4" />
-              <div className="h-4 w-full bg-slate-200 rounded mb-3" />
-              <div className="h-4 w-1/2 bg-slate-200 rounded" />
+          <div className="overflow-hidden rounded-xl border border-[#E6E3D9] bg-white">
+            <div className="flex flex-col sm:flex-row">
+              <div className="h-40 bg-[#E6E9E1] sm:w-[30%] sm:shrink-0" />
+              <div className="flex-1 space-y-3 p-4">
+                <div className="h-5 w-40 rounded bg-[#E6E9E1]" />
+                <div className="h-3 w-28 rounded bg-[#E6E9E1]" />
+                <div className="h-7 w-32 rounded bg-[#E6E9E1]" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2 p-3 sm:grid-cols-4">
+              {[1, 2, 3, 4].map((item) => (
+                <div key={item} className="h-16 rounded-lg bg-[#F0F1EC]" />
+              ))}
             </div>
           </div>
         </div>
@@ -42,25 +60,25 @@ const PropertyDetails = () => {
     );
   }
 
-  // Error
   if (error) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-        <div className="w-full max-w-md bg-white rounded-3xl shadow-xl border border-red-100 p-8 text-center">
-          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50 text-3xl">
-            ⚠️
+      <div className="flex min-h-[50vh] items-center justify-center bg-[#F7F8F5] px-4 py-6">
+        <div className="w-full max-w-sm rounded-xl border border-[#E6E3D9] bg-white p-6 text-center shadow-sm">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-[#F8EDEA] text-[#A64B3C]">
+            <AlertCircle size={24} />
           </div>
 
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
+          <h2 className="text-lg font-bold text-[#242B26]">
             Unable to load property
           </h2>
 
-          <p className="mt-2 text-sm text-slate-500">{error}</p>
+          <p className="mt-1 text-sm text-[#68756A]">{error}</p>
 
           <button
             onClick={() => window.location.reload()}
-            className="mt-6 w-full rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white transition hover:bg-blue-600 active:scale-[0.98]"
+            className="mt-4 inline-flex items-center justify-center gap-2 rounded-lg bg-[#244B3C] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#193A2E]"
           >
+            <RefreshCw size={15} />
             Try Again
           </button>
         </div>
@@ -68,20 +86,19 @@ const PropertyDetails = () => {
     );
   }
 
-  // No property
   if (!property) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-        <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-8 text-center">
-          <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-3xl bg-blue-50 text-4xl">
-            🏠
+      <div className="flex min-h-[50vh] items-center justify-center bg-[#F7F8F5] px-4 py-6">
+        <div className="w-full max-w-sm rounded-xl border border-[#E6E3D9] bg-white p-6 text-center shadow-sm">
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-xl bg-[#EAF0E8] text-[#244B3C]">
+            <Home size={28} />
           </div>
 
-          <h2 className="text-2xl font-bold text-slate-900">
+          <h2 className="text-xl font-bold text-[#242B26]">
             No Property Assigned
           </h2>
 
-          <p className="mt-2 text-slate-500">
+          <p className="mt-2 text-sm leading-5 text-[#68756A]">
             You don't have a rental property assigned to your account yet.
           </p>
         </div>
@@ -89,221 +106,212 @@ const PropertyDetails = () => {
     );
   }
 
+  const propertyStatus = property.status || "Rented";
+
+  const detailItems = [
+    {
+      label: "Address",
+      value: property.address || "Not available",
+      icon: MapPin,
+    },
+    {
+      label: "City",
+      value: property.city || "Not available",
+      icon: Building2,
+    },
+    {
+      label: "Property Owner",
+      value: property.landlord?.name || "Not available",
+      icon: UserRound,
+    },
+    {
+      label: "Owner Contact",
+      value: property.landlord?.phone || "Not available",
+      icon: Phone,
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Background decoration */}
-      <div className="absolute inset-x-0 top-0 h-72 bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-600" />
+    <div className="min-h-0 bg-[#F7F8F5]">
+      <main className="px-3 py-3 sm:px-5 sm:py-4 lg:px-6">
+        <div className="mx-auto max-w-6xl">
 
-      <main className="relative px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
-        <div className="max-w-6xl mx-auto">
-          {/* Page Header */}
-          <div className="mb-6 sm:mb-8 text-white">
-            <p className="text-sm font-medium text-blue-100 mb-1">
-              Tenant Portal
-            </p>
+          {/* Page heading */}
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[#527C61]">
+                Tenant Portal
+              </p>
 
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold">
-              My Property
-            </h1>
+              <h1 className="text-xl font-bold tracking-tight text-[#242B26] sm:text-2xl">
+                My Property
+              </h1>
 
-            <p className="mt-2 text-sm sm:text-base text-blue-100 max-w-xl">
-              View your rental property, owner information and monthly rent
-              details.
-            </p>
-          </div>
-
-          {/* Main Card */}
-          <div className="bg-white rounded-3xl shadow-2xl shadow-slate-900/10 overflow-hidden border border-white/50">
-            {/* Property Image */}
-            <div className="relative h-64 sm:h-80 lg:h-[420px] bg-slate-200 overflow-hidden">
-              {property.image ? (
-                <img
-                  src={property.image}
-                  alt={property.title}
-                  className="w-full h-full object-cover transition duration-700 hover:scale-105"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-indigo-100">
-                  <span className="text-7xl">🏠</span>
-                </div>
-              )}
-
-              {/* Image gradient */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-
-              {/* Status */}
-              <div className="absolute top-4 right-4 sm:top-6 sm:right-6">
-                <span className="inline-flex items-center gap-2 rounded-full bg-white/95 backdrop-blur px-4 py-2 text-sm font-semibold text-green-700 shadow-lg">
-                  <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                  {property.status || "Rented"}
-                </span>
-              </div>
-
-              {/* Property title on image */}
-              <div className="absolute bottom-5 left-5 right-5 sm:bottom-8 sm:left-8 sm:right-8 text-white">
-                <p className="text-sm text-white/80 mb-1">
-                  Your current residence
-                </p>
-
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">
-                  {property.title}
-                </h2>
-
-                <p className="mt-2 flex items-center gap-2 text-sm sm:text-base text-white/90">
-                  <span>📍</span>
-                  {property.city}
-                </p>
-              </div>
+              <p className="mt-0.5 text-xs text-[#68756A]">
+                Your rental home and landlord information.
+              </p>
             </div>
 
-            {/* Content */}
-            <div className="p-5 sm:p-8 lg:p-10">
-              {/* Rent highlight */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#DCE7DA] bg-[#EAF0E8] px-3 py-1.5 text-xs font-semibold capitalize text-[#244B3C]">
+              <span className="h-2 w-2 rounded-full bg-[#527C61]" />
+              {propertyStatus}
+            </div>
+          </div>
+
+          {/* Main property card */}
+          <section className="overflow-hidden rounded-xl border border-[#E6E3D9] bg-white shadow-sm">
+
+            {/* Compact property overview */}
+            <div className="flex flex-col sm:flex-row">
+
+              {/* Smaller property image */}
+              <div className="relative h-40 w-full shrink-0 overflow-hidden bg-[#EAF0E8] sm:h-auto sm:min-h-[190px] sm:w-[30%] lg:w-[27%]">
+                {property.image ? (
+                  <img
+                    src={property.image}
+                    alt={property.title || "Rental property"}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full min-h-[150px] items-center justify-center">
+                    <Home
+                      size={48}
+                      className="text-[#527C61]"
+                      strokeWidth={1.3}
+                    />
+                  </div>
+                )}
+
+                <div className="absolute left-3 top-3">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-semibold capitalize text-[#244B3C] shadow-sm">
+                    <CheckCircle2 size={12} className="text-[#527C61]" />
+                    {propertyStatus}
+                  </span>
+                </div>
+              </div>
+
+              {/* Property details beside image */}
+              <div className="flex min-w-0 flex-1 flex-col justify-between gap-4 p-4 sm:p-5">
+
                 <div>
-                  <p className="text-sm font-medium text-slate-500">
-                    Monthly Rent
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#527C61]">
+                    Your Current Residence
                   </p>
 
-                  <div className="flex items-baseline gap-2 mt-1">
-                    <span className="text-3xl sm:text-4xl font-extrabold text-blue-600">
-                      ₹{property.rent}
-                    </span>
+                  <h2 className="mt-1 text-xl font-bold leading-tight text-[#242B26] sm:text-2xl">
+                    {property.title || "Your Rental Property"}
+                  </h2>
 
-                    <span className="text-sm text-slate-500">/ month</span>
-                  </div>
-                </div>
-
-                <div className="rounded-2xl bg-blue-50 px-5 py-3">
-                  <p className="text-xs font-medium text-blue-500">
-                    Rental Status
-                  </p>
-
-                  <p className="mt-1 font-bold text-blue-700 capitalize">
-                    {property.status || "Active"}
+                  <p className="mt-2 flex items-center gap-1.5 text-xs text-[#68756A] sm:text-sm">
+                    <MapPin size={15} className="shrink-0 text-[#527C61]" />
+                    {property.city || "Location not available"}
                   </p>
                 </div>
-              </div>
 
-              {/* Details */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Address */}
-                <div className="group rounded-2xl border border-slate-100 bg-slate-50 p-5 transition hover:border-blue-100 hover:bg-blue-50/50">
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm text-xl">
-                      📍
-                    </div>
-
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                        Address
-                      </p>
-
-                      <p className="mt-1 text-sm sm:text-base font-semibold text-slate-800 break-words">
-                        {property.address}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* City */}
-                <div className="group rounded-2xl border border-slate-100 bg-slate-50 p-5 transition hover:border-blue-100 hover:bg-blue-50/50">
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm text-xl">
-                      🏙️
-                    </div>
-
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                        City
-                      </p>
-
-                      <p className="mt-1 text-sm sm:text-base font-semibold text-slate-800">
-                        {property.city}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Owner */}
-                <div className="group rounded-2xl border border-slate-100 bg-slate-50 p-5 transition hover:border-blue-100 hover:bg-blue-50/50">
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm text-xl">
-                      👤
-                    </div>
-
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                        Property Owner
-                      </p>
-
-                      <p className="mt-1 text-sm sm:text-base font-semibold text-slate-800">
-                        {property.landlord?.name || "Not available"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Contact */}
-                <div className="group rounded-2xl border border-slate-100 bg-slate-50 p-5 transition hover:border-blue-100 hover:bg-blue-50/50">
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm text-xl">
-                      📞
-                    </div>
-
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                        Owner Contact
-                      </p>
-
-                      <p className="mt-1 text-sm sm:text-base font-semibold text-slate-800 break-all">
-                        {property.landlord?.phone || "Not available"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Contact Owner */}
-              <div className="mt-8 pt-6 border-t border-slate-100">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex flex-wrap items-center gap-5 border-t border-[#E6E3D9] pt-3">
                   <div>
-                    <h3 className="font-bold text-slate-900">
-                      Need help with your property?
-                    </h3>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-[#879187]">
+                      Monthly Rent
+                    </p>
 
-                    <p className="text-sm text-slate-500 mt-1">
-                      Contact your landlord for any rental-related questions.
+                    <div className="mt-0.5 flex items-center gap-1">
+                      <IndianRupee
+                        size={18}
+                        className="text-[#244B3C]"
+                        strokeWidth={2.5}
+                      />
+
+                      <span className="text-2xl font-extrabold tracking-tight text-[#244B3C]">
+                        {property.rent ?? "—"}
+                      </span>
+
+                      <span className="text-xs text-[#68756A]">/ month</span>
+                    </div>
+                  </div>
+
+                  <div className="border-l border-[#E6E3D9] pl-5">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-[#879187]">
+                      Rental Status
+                    </p>
+                    <p className="mt-1 text-sm font-bold capitalize text-[#244B3C]">
+                      {propertyStatus}
                     </p>
                   </div>
-
-                  {property.landlord?.phone ? (
-                    <a
-                      href={`tel:${property.landlord.phone}`}
-                      className="inline-flex items-center justify-center gap-2 w-full sm:w-auto rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-500/30 active:scale-[0.98]"
-                    >
-                      <span>📞</span>
-                      Contact Owner
-                    </a>
-                  ) : (
-                    <button
-                      disabled
-                      className="w-full sm:w-auto rounded-xl bg-slate-200 px-6 py-3.5 text-sm font-semibold text-slate-500 cursor-not-allowed"
-                    >
-                      Contact Unavailable
-                    </button>
-                  )}
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Bottom info */}
-          <div className="mt-5 sm:mt-6 text-center">
-            <p className="text-xs sm:text-sm text-slate-400">
-              Property information is provided by your landlord.
-            </p>
-          </div>
+            {/* Property information */}
+            <div className="border-t border-[#E6E3D9] p-3 sm:p-4">
+
+              <div className="mb-2">
+                <h3 className="text-sm font-bold text-[#242B26]">
+                  Property Information
+                </h3>
+                <p className="mt-0.5 text-[11px] text-[#68756A]">
+                  Your home and owner details.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                {detailItems.map(({ label, value, icon: Icon }) => (
+                  <div
+                    key={label}
+                    className="flex min-w-0 items-center gap-2.5 rounded-lg border border-[#E6E3D9] bg-[#FCFCFA] px-3 py-2.5 transition hover:border-[#A8BDA5]"
+                  >
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#EAF0E8] text-[#244B3C]">
+                      <Icon size={16} strokeWidth={1.9} />
+                    </div>
+
+                    <div className="min-w-0">
+                      <p className="text-[9px] font-bold uppercase tracking-wider text-[#879187]">
+                        {label}
+                      </p>
+
+                      <p className="mt-0.5 break-words text-xs font-semibold leading-4 text-[#344239]">
+                        {value}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Contact landlord */}
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-[#E6E3D9] pt-3">
+                <div>
+                  <h3 className="text-sm font-bold text-[#242B26]">
+                    Need help with your property?
+                  </h3>
+                  <p className="mt-0.5 text-xs text-[#68756A]">
+                    Contact your landlord for assistance.
+                  </p>
+                </div>
+
+                {property.landlord?.phone ? (
+                  <a
+                    href={`tel:${property.landlord.phone}`}
+                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#244B3C] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#193A2E] active:scale-[0.98]"
+                  >
+                    <Phone size={14} />
+                    Contact Owner
+                  </a>
+                ) : (
+                  <button
+                    type="button"
+                    disabled
+                    className="inline-flex cursor-not-allowed items-center justify-center gap-2 rounded-lg bg-[#E9ECE6] px-4 py-2 text-xs font-semibold text-[#879187]"
+                  >
+                    <Phone size={14} />
+                    Contact Unavailable
+                  </button>
+                )}
+              </div>
+            </div>
+          </section>
+
+          <p className="mt-2 text-center text-[10px] text-[#879187]">
+            Property information is provided by your landlord.
+          </p>
         </div>
       </main>
     </div>

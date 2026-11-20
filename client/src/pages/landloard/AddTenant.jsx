@@ -1,6 +1,21 @@
+
 import React, { useState } from "react";
-import api from "../../api/axios.js";
 import { useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  ArrowRight,
+  UserRound,
+  Mail,
+  Phone,
+  LockKeyhole,
+  Eye,
+  EyeOff,
+  ShieldCheck,
+  CheckCircle2,
+  Users,
+} from "lucide-react";
+import toast from "react-hot-toast";
+import api from "../../api/axios.js";
 
 const AddTenant = () => {
   const navigate = useNavigate();
@@ -25,6 +40,22 @@ const AddTenant = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!formData.name.trim()) {
+      return toast.error("Please enter the tenant's name");
+    }
+
+    if (!formData.email.trim()) {
+      return toast.error("Please enter an email address");
+    }
+
+    if (!formData.phone.trim()) {
+      return toast.error("Please enter a phone number");
+    }
+
+    if (formData.password.length < 6) {
+      return toast.error("Password must be at least 6 characters");
+    }
+
     try {
       setLoading(true);
 
@@ -36,214 +67,216 @@ const AddTenant = () => {
         },
       });
 
-      alert("Tenant created successfully");
-
+      toast.success("Tenant created successfully!");
       navigate("/landlord/tenants");
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to create tenant");
+      toast.error(
+        err.response?.data?.message || "Failed to create tenant"
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const tenantInitial = formData.name?.trim()?.charAt(0)?.toUpperCase() || "T";
+  const tenantInitial =
+    formData.name.trim().charAt(0).toUpperCase() || "T";
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
+    <div className="bg-[#F7F8F5] p-3 sm:p-5">
       <div className="mx-auto max-w-5xl">
-        {/* =====================================================
-            TOP HEADER
-        ====================================================== */}
 
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <button
-              type="button"
-              onClick={() => navigate("/landlord/tenants")}
-              className="mb-3 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition hover:text-blue-600"
-            >
-              <span className="text-lg">←</span>
-              Back to Tenants
-            </button>
+        {/* HEADER */}
+        <div className="mb-4">
+          <button
+            type="button"
+            onClick={() => navigate("/landlord/tenants")}
+            className="mb-2 inline-flex items-center gap-1.5 text-xs font-semibold text-[#68756A] transition hover:text-[#244B3C]"
+          >
+            <ArrowLeft size={15} />
+            Back to Tenants
+          </button>
 
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-              Add New Tenant
-            </h1>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-[#242B26]">
+                Add New Tenant
+              </h1>
+              <p className="mt-1 text-xs text-[#68756A] sm:text-sm">
+                Create a tenant account for your rental property.
+              </p>
+            </div>
 
-            <p className="mt-1 text-sm text-slate-500 sm:text-base">
-              Create a tenant account and add them to your rental management
-              system.
-            </p>
+            <div className="hidden h-10 w-10 items-center justify-center rounded-xl bg-[#EAF0E9] text-[#244B3C] sm:flex">
+              <Users size={21} />
+            </div>
           </div>
         </div>
 
-        {/* =====================================================
-            MAIN GRID
-        ====================================================== */}
+        {/* MAIN GRID */}
+        <div className="grid gap-4 lg:grid-cols-[0.8fr_1.5fr]">
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[0.8fr_1.5fr]">
-          {/* ===================================================
-              LEFT PROFILE CARD
-          ==================================================== */}
+          {/* LEFT PROFILE CARD */}
+          <div className="relative overflow-hidden rounded-2xl bg-[#244B3C] p-5 text-white shadow-sm">
 
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-700 via-indigo-700 to-violet-700 p-6 shadow-xl shadow-blue-900/10 sm:p-8">
-            {/* Decorative circles */}
-
-            <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-white/10 blur-2xl" />
-
-            <div className="absolute -bottom-24 -left-20 h-64 w-64 rounded-full bg-indigo-950/20 blur-3xl" />
+            <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/5 blur-2xl" />
+            <div className="absolute -bottom-20 -left-16 h-48 w-48 rounded-full bg-black/10 blur-2xl" />
 
             <div className="relative">
-              {/* Badge */}
 
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-semibold text-blue-100 backdrop-blur">
-                <span className="h-2 w-2 rounded-full bg-emerald-400" />
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[10px] font-semibold text-[#DCE8DE]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#D6A45D]" />
                 Tenant Account
               </div>
 
-              {/* Avatar */}
-
-              <div className="mt-8 flex justify-center">
-                <div className="flex h-28 w-28 items-center justify-center rounded-[2rem] border-4 border-white/20 bg-white/15 text-4xl font-bold text-white shadow-2xl backdrop-blur">
+              {/* AVATAR */}
+              <div className="mt-5 flex justify-center">
+                <div className="flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-white/20 bg-white/10 text-3xl font-bold text-white">
                   {tenantInitial}
                 </div>
               </div>
 
-              {/* Name */}
-
-              <div className="mt-5 text-center">
-                <h2 className="truncate text-xl font-bold text-white">
+              {/* PROFILE */}
+              <div className="mt-3 text-center">
+                <h2 className="truncate text-lg font-bold">
                   {formData.name || "New Tenant"}
                 </h2>
 
-                <p className="mt-1 truncate text-sm text-blue-100/70">
+                <p className="mt-1 truncate text-xs text-[#DCE8DE]">
                   {formData.email || "tenant@example.com"}
                 </p>
               </div>
 
-              {/* Information */}
+              {/* ACCOUNT DETAILS */}
+              <div className="mt-5 space-y-2.5">
 
-              <div className="mt-8 space-y-3">
-                <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10">
-                      👤
-                    </div>
+                <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/10 p-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10">
+                    <UserRound size={17} />
+                  </div>
 
-                    <div>
-                      <p className="text-xs font-semibold text-blue-100/60">
-                        Account Type
-                      </p>
-
-                      <p className="mt-1 text-sm font-semibold text-white">
-                        Tenant
-                      </p>
-                    </div>
+                  <div>
+                    <p className="text-[10px] text-[#C7D9C8]">
+                      Account Type
+                    </p>
+                    <p className="text-xs font-semibold">
+                      Tenant
+                    </p>
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10">
-                      🔐
+                <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/10 p-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10">
+                    <ShieldCheck size={17} />
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] text-[#C7D9C8]">
+                      Account Status
+                    </p>
+                    <p className="text-xs font-semibold text-[#C5DCC3]">
+                      Active after creation
+                    </p>
+                  </div>
+                </div>
+
+                {formData.phone && (
+                  <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/10 p-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10">
+                      <Phone size={17} />
                     </div>
 
-                    <div>
-                      <p className="text-xs font-semibold text-blue-100/60">
-                        Account Status
+                    <div className="min-w-0">
+                      <p className="text-[10px] text-[#C7D9C8]">
+                        Phone Number
                       </p>
-
-                      <p className="mt-1 text-sm font-semibold text-emerald-300">
-                        Active after creation
+                      <p className="truncate text-xs font-semibold">
+                        {formData.phone}
                       </p>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
 
-              {/* Tip */}
-
-              <div className="mt-6 rounded-2xl border border-white/10 bg-black/10 p-4">
-                <p className="text-xs font-bold uppercase tracking-wider text-blue-100/60">
-                  Tip
+              {/* TIP */}
+              <div className="mt-4 rounded-xl border border-white/10 bg-black/10 p-3">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[#D6A45D]">
+                  Helpful Tip
                 </p>
-
-                <p className="mt-2 text-sm leading-6 text-blue-50/80">
-                  Use the tenant's real email and phone number so you can easily
-                  contact them regarding rent and property updates.
+                <p className="mt-1.5 text-xs leading-5 text-[#E1E9DF]">
+                  Enter the tenant's correct contact details to make rent
+                  communication and property updates easier.
                 </p>
               </div>
             </div>
           </div>
 
-          {/* ===================================================
-              FORM CARD
-          ==================================================== */}
+          {/* FORM CARD */}
+          <div className="rounded-2xl border border-[#E6E3D9] bg-white p-4 shadow-sm sm:p-5">
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7 lg:p-8">
-            {/* Form header */}
+            {/* FORM HEADER */}
+            <div className="mb-4 flex items-center gap-3 border-b border-[#EEEDE7] pb-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EAF0E9] text-[#244B3C]">
+                <UserRound size={20} />
+              </div>
 
-            <div className="mb-7 border-b border-slate-100 pb-6">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-xl">
-                  👤
-                </div>
-
-                <div>
-                  <h2 className="font-bold text-slate-900">
-                    Tenant Information
-                  </h2>
-
-                  <p className="text-xs text-slate-400">
-                    Enter the tenant's account details
-                  </p>
-                </div>
+              <div>
+                <h2 className="text-sm font-bold text-[#242B26]">
+                  Tenant Information
+                </h2>
+                <p className="text-[11px] text-[#68756A]">
+                  Enter the tenant's account details.
+                </p>
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* =================================================
-                  NAME
-              ================================================== */}
+            <form onSubmit={handleSubmit} className="space-y-3.5">
 
+              {/* NAME */}
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                <label
+                  htmlFor="name"
+                  className="mb-1.5 block text-xs font-semibold text-[#526056]"
+                >
                   Full Name
                 </label>
 
                 <div className="relative">
-                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                    👤
-                  </span>
+                  <UserRound
+                    size={17}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#89958A]"
+                  />
 
                   <input
+                    id="name"
                     name="name"
                     placeholder="Enter tenant's full name"
                     value={formData.name}
                     onChange={handleChange}
                     disabled={loading}
                     autoComplete="name"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="w-full rounded-xl border border-[#E6E3D9] bg-[#FAFBF9] py-2.5 pl-10 pr-3 text-sm text-[#242B26] outline-none transition placeholder:text-[#A0A99F] focus:border-[#527C61] focus:bg-white focus:ring-2 focus:ring-[#527C61]/10 disabled:opacity-60"
                     required
                   />
                 </div>
               </div>
 
-              {/* =================================================
-                  EMAIL
-              ================================================== */}
-
+              {/* EMAIL */}
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                <label
+                  htmlFor="email"
+                  className="mb-1.5 block text-xs font-semibold text-[#526056]"
+                >
                   Email Address
                 </label>
 
                 <div className="relative">
-                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                    ✉️
-                  </span>
+                  <Mail
+                    size={17}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#89958A]"
+                  />
 
                   <input
+                    id="email"
                     name="email"
                     placeholder="tenant@example.com"
                     type="email"
@@ -251,31 +284,32 @@ const AddTenant = () => {
                     onChange={handleChange}
                     disabled={loading}
                     autoComplete="email"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="w-full rounded-xl border border-[#E6E3D9] bg-[#FAFBF9] py-2.5 pl-10 pr-3 text-sm text-[#242B26] outline-none transition placeholder:text-[#A0A99F] focus:border-[#527C61] focus:bg-white focus:ring-2 focus:ring-[#527C61]/10 disabled:opacity-60"
                     required
                   />
                 </div>
-
-                <p className="mt-2 text-xs text-slate-400">
-                  This email will be used for the tenant's account.
+                <p className="mt-1 text-[10px] text-[#89958A]">
+                  Used for the tenant's account login.
                 </p>
               </div>
 
-              {/* =================================================
-                  PHONE
-              ================================================== */}
-
+              {/* PHONE */}
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                <label
+                  htmlFor="phone"
+                  className="mb-1.5 block text-xs font-semibold text-[#526056]"
+                >
                   Phone Number
                 </label>
 
                 <div className="relative">
-                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                    📱
-                  </span>
+                  <Phone
+                    size={17}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#89958A]"
+                  />
 
                   <input
+                    id="phone"
                     name="phone"
                     placeholder="Enter phone number"
                     type="tel"
@@ -283,27 +317,29 @@ const AddTenant = () => {
                     onChange={handleChange}
                     disabled={loading}
                     autoComplete="tel"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="w-full rounded-xl border border-[#E6E3D9] bg-[#FAFBF9] py-2.5 pl-10 pr-3 text-sm text-[#242B26] outline-none transition placeholder:text-[#A0A99F] focus:border-[#527C61] focus:bg-white focus:ring-2 focus:ring-[#527C61]/10 disabled:opacity-60"
                     required
                   />
                 </div>
               </div>
 
-              {/* =================================================
-                  PASSWORD
-              ================================================== */}
-
+              {/* PASSWORD */}
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                <label
+                  htmlFor="password"
+                  className="mb-1.5 block text-xs font-semibold text-[#526056]"
+                >
                   Password
                 </label>
 
                 <div className="relative">
-                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                    🔒
-                  </span>
+                  <LockKeyhole
+                    size={17}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#89958A]"
+                  />
 
                   <input
+                    id="password"
                     name="password"
                     placeholder="Create a secure password"
                     type={showPassword ? "text" : "password"}
@@ -311,58 +347,56 @@ const AddTenant = () => {
                     onChange={handleChange}
                     disabled={loading}
                     autoComplete="new-password"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-14 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="w-full rounded-xl border border-[#E6E3D9] bg-[#FAFBF9] py-2.5 pl-10 pr-11 text-sm text-[#242B26] outline-none transition placeholder:text-[#A0A99F] focus:border-[#527C61] focus:bg-white focus:ring-2 focus:ring-[#527C61]/10 disabled:opacity-60"
                     required
+                    minLength={6}
                   />
 
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     disabled={loading}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1 text-xs font-semibold text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-[#89958A] transition hover:text-[#244B3C] disabled:opacity-50"
                   >
-                    {showPassword ? "Hide" : "Show"}
+                    {showPassword ? (
+                      <EyeOff size={17} />
+                    ) : (
+                      <Eye size={17} />
+                    )}
                   </button>
                 </div>
 
-                <p className="mt-2 text-xs text-slate-400">
-                  Create a password that is difficult to guess.
+                <p className="mt-1 text-[10px] text-[#89958A]">
+                  Use at least 6 characters.
                 </p>
               </div>
 
-              {/* =================================================
-                  SECURITY INFO
-              ================================================== */}
+              {/* SECURITY INFO */}
+              <div className="flex gap-2.5 rounded-xl border border-[#E0E9DD] bg-[#F2F6EF] p-3">
+                <ShieldCheck
+                  size={19}
+                  className="shrink-0 text-[#527C61]"
+                />
 
-              <div className="rounded-2xl border border-blue-100 bg-blue-50/70 p-4">
-                <div className="flex gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-100">
-                    🛡️
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-bold text-blue-900">
-                      Account Security
-                    </p>
-
-                    <p className="mt-1 text-xs leading-5 text-blue-700/70">
-                      The tenant will use these credentials to access their
-                      account. Keep login information secure.
-                    </p>
-                  </div>
+                <div>
+                  <p className="text-xs font-bold text-[#244B3C]">
+                    Account Security
+                  </p>
+                  <p className="mt-0.5 text-[10px] leading-4 text-[#68756A]">
+                    These credentials will allow the tenant to access their
+                    account. Keep the password secure.
+                  </p>
                 </div>
               </div>
 
-              {/* =================================================
-                  BUTTONS
-              ================================================== */}
-
-              <div className="flex flex-col-reverse gap-3 pt-3 sm:flex-row sm:justify-end">
+              {/* ACTIONS */}
+              <div className="flex flex-col-reverse gap-2 border-t border-[#EEEDE7] pt-4 sm:flex-row sm:justify-end">
                 <button
                   type="button"
                   onClick={() => navigate("/landlord/tenants")}
                   disabled={loading}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-5 py-3.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+                  className="w-full rounded-xl border border-[#E6E3D9] px-5 py-2.5 text-xs font-semibold text-[#526056] transition hover:bg-[#F7F8F5] disabled:opacity-50 sm:w-auto"
                 >
                   Cancel
                 </button>
@@ -370,7 +404,7 @@ const AddTenant = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="group flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition hover:from-blue-500 hover:to-indigo-500 hover:shadow-xl hover:shadow-blue-600/25 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#244B3C] px-5 py-2.5 text-xs font-bold text-white transition hover:bg-[#193A2E] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                 >
                   {loading ? (
                     <>
@@ -379,8 +413,8 @@ const AddTenant = () => {
                     </>
                   ) : (
                     <>
-                      <span className="text-base">+</span>
                       Create Tenant
+                      <ArrowRight size={15} />
                     </>
                   )}
                 </button>

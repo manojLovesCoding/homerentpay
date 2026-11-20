@@ -1,6 +1,20 @@
+
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import {
+  ArrowLeft,
+  UserRound,
+  Mail,
+  Phone,
+  Pencil,
+  ShieldCheck,
+  Save,
+  X,
+  LoaderCircle,
+  CheckCircle2,
+} from "lucide-react";
 import api from "../../api/axios.js";
+import toast from "react-hot-toast";
 
 const EditTenant = () => {
   const { id } = useParams();
@@ -29,7 +43,7 @@ const EditTenant = () => {
         const tenant = res.data.tenants.find((t) => t._id === id);
 
         if (!tenant) {
-          alert("Tenant not found");
+          toast.error("Tenant not found");
           navigate("/landlord/tenants");
           return;
         }
@@ -40,8 +54,10 @@ const EditTenant = () => {
           phone: tenant.phone || "",
         });
       } catch (err) {
-        console.log(err);
-        alert("Failed to load tenant");
+        console.error(err);
+        toast.error(
+          err.response?.data?.message || "Failed to load tenant"
+        );
       } finally {
         setFetching(false);
       }
@@ -51,364 +67,334 @@ const EditTenant = () => {
   }, [id, navigate]);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!formData.name.trim()) {
+      toast.error("Please enter tenant name");
+      return;
+    }
+
+    if (!formData.email.trim()) {
+      toast.error("Please enter email address");
+      return;
+    }
+
+    if (!formData.phone.trim()) {
+      toast.error("Please enter phone number");
+      return;
+    }
 
     try {
       setSaving(true);
 
       const token = localStorage.getItem("token");
 
-      await api.put(`/auth/tenant/${id}`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      await api.put(
+        `/auth/tenant/${id}`,
+        {
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
         },
-      });
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      alert("Tenant updated successfully");
-
+      toast.success("Tenant updated successfully");
       navigate("/landlord/tenants");
     } catch (err) {
-      alert(err.response?.data?.message || "Update failed");
+      toast.error(
+        err.response?.data?.message || "Update failed"
+      );
     } finally {
       setSaving(false);
     }
   };
 
-  /* ============================================================
-     LOADING SKELETON
-  ============================================================ */
+  const tenantInitial =
+    formData.name?.trim()?.charAt(0)?.toUpperCase() || "T";
+
+  /* LOADING */
 
   if (fetching) {
     return (
-      <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
-        <div className="mx-auto max-w-5xl">
-          <div className="mb-6">
-            <div className="h-4 w-32 animate-pulse rounded bg-slate-200" />
+      <div className="space-y-4">
+        <div className="h-10 w-56 animate-pulse rounded-lg bg-[#E8ECE5]" />
 
-            <div className="mt-4 h-9 w-64 animate-pulse rounded-lg bg-slate-200" />
-
-            <div className="mt-2 h-4 w-96 max-w-full animate-pulse rounded bg-slate-100" />
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[0.8fr_1.5fr]">
-            <div className="h-[600px] animate-pulse rounded-3xl bg-slate-200" />
-
-            <div className="h-[600px] animate-pulse rounded-3xl bg-white" />
-          </div>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[0.75fr_1.5fr]">
+          <div className="h-64 animate-pulse rounded-xl bg-[#E8ECE5]" />
+          <div className="h-80 animate-pulse rounded-xl bg-[#E8ECE5]" />
         </div>
       </div>
     );
   }
 
-  const tenantInitial = formData.name?.trim()?.charAt(0)?.toUpperCase() || "T";
-
   return (
-    <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
-      <div className="mx-auto max-w-5xl">
-        {/* =====================================================
-            PAGE HEADER
-        ====================================================== */}
+    <div className="space-y-4 text-[#242B26]">
 
-        <div className="mb-6">
-          <button
-            type="button"
-            onClick={() => navigate("/landlord/tenants")}
-            className="mb-3 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition hover:text-blue-600"
-          >
-            <span className="text-lg">←</span>
-            Back to Tenants
-          </button>
+      {/* HEADER */}
 
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-            Edit Tenant
-          </h1>
+      <div>
+        <button
+          type="button"
+          onClick={() => navigate("/landlord/tenants")}
+          className="mb-2 inline-flex items-center gap-1.5 text-xs font-semibold text-[#68756A] transition hover:text-[#244B3C]"
+        >
+          <ArrowLeft size={14} />
+          Back to Tenants
+        </button>
 
-          <p className="mt-1 text-sm text-slate-500 sm:text-base">
-            Update the tenant's personal and contact information.
-          </p>
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#EAF0E8] text-[#244B3C]">
+            <Pencil size={18} />
+          </div>
+
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-[#242B26]">
+              Edit Tenant
+            </h1>
+            <p className="text-xs text-[#68756A]">
+              Update tenant personal and contact information.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* MAIN CONTENT */}
+
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[0.75fr_1.5fr]">
+
+        {/* PROFILE PANEL */}
+
+        <div className="overflow-hidden rounded-xl border border-[#E6E3D9] bg-white">
+
+          <div className="bg-[#244B3C] px-4 py-4 text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-white/20 bg-white/10 text-2xl font-bold text-white">
+              {tenantInitial}
+            </div>
+
+            <h2 className="mt-2 truncate text-base font-bold text-white">
+              {formData.name || "Tenant"}
+            </h2>
+
+            <p className="mt-0.5 truncate text-xs text-[#DCE8DA]">
+              {formData.email || "tenant@example.com"}
+            </p>
+
+            <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-semibold text-[#F7F4EA]">
+              <CheckCircle2 size={11} />
+              Editing Tenant
+            </span>
+          </div>
+
+          <div className="space-y-2.5 p-3">
+            <div className="flex items-center gap-2.5 rounded-lg bg-[#F7F4EA] p-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-[#244B3C]">
+                <UserRound size={15} />
+              </div>
+              <div>
+                <p className="text-[10px] text-[#89928A]">
+                  Account Type
+                </p>
+                <p className="text-xs font-semibold text-[#242B26]">
+                  Tenant
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 rounded-lg bg-[#F7F4EA] p-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-[#244B3C]">
+                <ShieldCheck size={15} />
+              </div>
+              <div>
+                <p className="text-[10px] text-[#89928A]">
+                  Profile Status
+                </p>
+                <p className="text-xs font-semibold text-[#527C61]">
+                  Changes pending
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-[#E6E3D9] p-3">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-[#8B642F]">
+                Important
+              </p>
+              <p className="mt-1 text-[11px] leading-5 text-[#68756A]">
+                Updated information will be reflected throughout the landlord dashboard.
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* =====================================================
-            MAIN GRID
-        ====================================================== */}
+        {/* EDIT FORM */}
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[0.8fr_1.5fr]">
-          {/* ===================================================
-              LEFT PROFILE PANEL
-          ==================================================== */}
+        <div className="rounded-xl border border-[#E6E3D9] bg-white">
 
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-700 via-indigo-700 to-violet-700 p-6 shadow-xl shadow-blue-900/10 sm:p-8">
-            {/* Decorative circles */}
+          <div className="flex items-center gap-2.5 border-b border-[#EEECE4] px-4 py-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#EAF0E8] text-[#244B3C]">
+              <Pencil size={15} />
+            </div>
 
-            <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
-
-            <div className="absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-indigo-950/20 blur-3xl" />
-
-            <div className="relative">
-              {/* Badge */}
-
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-semibold text-blue-100 backdrop-blur">
-                <span className="h-2 w-2 rounded-full bg-amber-400" />
-                Editing Tenant
-              </div>
-
-              {/* Avatar */}
-
-              <div className="mt-8 flex justify-center">
-                <div className="flex h-28 w-28 items-center justify-center rounded-[2rem] border-4 border-white/20 bg-white/15 text-4xl font-bold text-white shadow-2xl backdrop-blur">
-                  {tenantInitial}
-                </div>
-              </div>
-
-              {/* Name */}
-
-              <div className="mt-5 text-center">
-                <h2 className="truncate text-xl font-bold text-white">
-                  {formData.name || "Tenant"}
-                </h2>
-
-                <p className="mt-1 truncate text-sm text-blue-100/70">
-                  {formData.email || "tenant@example.com"}
-                </p>
-              </div>
-
-              {/* Profile details */}
-
-              <div className="mt-8 space-y-3">
-                {/* Account */}
-
-                <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10">
-                      👤
-                    </div>
-
-                    <div>
-                      <p className="text-xs font-semibold text-blue-100/60">
-                        Account Type
-                      </p>
-
-                      <p className="mt-1 text-sm font-semibold text-white">
-                        Tenant
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Profile */}
-
-                <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10">
-                      ✏️
-                    </div>
-
-                    <div>
-                      <p className="text-xs font-semibold text-blue-100/60">
-                        Profile
-                      </p>
-
-                      <p className="mt-1 text-sm font-semibold text-amber-300">
-                        Changes pending
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Notice */}
-
-              <div className="mt-6 rounded-2xl border border-white/10 bg-black/10 p-4">
-                <p className="text-xs font-bold uppercase tracking-wider text-blue-100/60">
-                  Important
-                </p>
-
-                <p className="mt-2 text-sm leading-6 text-blue-50/80">
-                  Changes made here will update the tenant's account information
-                  immediately.
-                </p>
-              </div>
+            <div>
+              <h2 className="text-sm font-bold text-[#242B26]">
+                Tenant Information
+              </h2>
+              <p className="text-[10px] text-[#89928A]">
+                Update the details below
+              </p>
             </div>
           </div>
 
-          {/* ===================================================
-              FORM
-          ==================================================== */}
+          <form onSubmit={handleSubmit} className="space-y-3.5 p-4">
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7 lg:p-8">
-            {/* Form header */}
+            {/* NAME */}
 
-            <div className="mb-7 border-b border-slate-100 pb-6">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-xl">
-                  ✏️
-                </div>
+            <div>
+              <label
+                htmlFor="name"
+                className="mb-1.5 block text-xs font-semibold text-[#526056]"
+              >
+                Full Name
+              </label>
 
-                <div>
-                  <h2 className="font-bold text-slate-900">
-                    Tenant Information
-                  </h2>
+              <div className="relative">
+                <UserRound
+                  size={15}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[#89928A]"
+                />
 
-                  <p className="text-xs text-slate-400">
-                    Update the details below
-                  </p>
-                </div>
+                <input
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="Enter tenant name"
+                  autoComplete="name"
+                  disabled={saving}
+                  className="w-full rounded-lg border border-[#E6E3D9] bg-[#FAFAF7] py-2.5 pl-9 pr-3 text-xs text-[#242B26] outline-none transition placeholder:text-[#A0A79F] focus:border-[#527C61] focus:bg-white focus:ring-2 focus:ring-[#527C61]/10 disabled:opacity-60"
+                  required
+                />
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* =================================================
-                  NAME
-              ================================================== */}
+            {/* EMAIL */}
 
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Full Name
-                </label>
+            <div>
+              <label
+                htmlFor="email"
+                className="mb-1.5 block text-xs font-semibold text-[#526056]"
+              >
+                Email Address
+              </label>
 
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                    👤
-                  </span>
+              <div className="relative">
+                <Mail
+                  size={15}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[#89928A]"
+                />
 
-                  <input
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="Tenant name"
-                    autoComplete="name"
-                    disabled={saving}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* =================================================
-                  EMAIL
-              ================================================== */}
-
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Email Address
-                </label>
-
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                    ✉️
-                  </span>
-
-                  <input
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="tenant@example.com"
-                    type="email"
-                    autoComplete="email"
-                    disabled={saving}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60"
-                    required
-                  />
-                </div>
-
-                <p className="mt-2 text-xs text-slate-400">
-                  Make sure the email address is correct.
-                </p>
-              </div>
-
-              {/* =================================================
-                  PHONE
-              ================================================== */}
-
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Phone Number
-                </label>
-
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                    📱
-                  </span>
-
-                  <input
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    placeholder="Phone number"
-                    type="tel"
-                    autoComplete="tel"
-                    disabled={saving}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* =================================================
-                  INFO BOX
-              ================================================== */}
-
-              <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4">
-                <div className="flex gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100">
-                    💡
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-bold text-amber-900">
-                      Profile update
-                    </p>
-
-                    <p className="mt-1 text-xs leading-5 text-amber-700/70">
-                      Review the information carefully before saving. The
-                      updated details will be reflected throughout the landlord
-                      dashboard.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* =================================================
-                  ACTIONS
-              ================================================== */}
-
-              <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:justify-end">
-                <button
-                  type="button"
-                  onClick={() => navigate("/landlord/tenants")}
+                <input
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="tenant@example.com"
+                  type="email"
+                  autoComplete="email"
                   disabled={saving}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-5 py-3.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-                >
-                  Cancel
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition hover:from-blue-500 hover:to-indigo-500 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-                >
-                  {saving ? (
-                    <>
-                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                      Saving Changes...
-                    </>
-                  ) : (
-                    <>
-                      <span>✓</span>
-                      Save Changes
-                    </>
-                  )}
-                </button>
+                  className="w-full rounded-lg border border-[#E6E3D9] bg-[#FAFAF7] py-2.5 pl-9 pr-3 text-xs text-[#242B26] outline-none transition placeholder:text-[#A0A79F] focus:border-[#527C61] focus:bg-white focus:ring-2 focus:ring-[#527C61]/10 disabled:opacity-60"
+                  required
+                />
               </div>
-            </form>
-          </div>
+              <p className="mt-1 text-[10px] text-[#89928A]">
+                Use a valid email address for tenant communication.
+              </p>
+            </div>
+
+            {/* PHONE */}
+
+            <div>
+              <label
+                htmlFor="phone"
+                className="mb-1.5 block text-xs font-semibold text-[#526056]"
+              >
+                Phone Number
+              </label>
+
+              <div className="relative">
+                <Phone
+                  size={15}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[#89928A]"
+                />
+
+                <input
+                  id="phone"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="Enter phone number"
+                  type="tel"
+                  autoComplete="tel"
+                  disabled={saving}
+                  className="w-full rounded-lg border border-[#E6E3D9] bg-[#FAFAF7] py-2.5 pl-9 pr-3 text-xs text-[#242B26] outline-none transition placeholder:text-[#A0A79F] focus:border-[#527C61] focus:bg-white focus:ring-2 focus:ring-[#527C61]/10 disabled:opacity-60"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* INFO */}
+
+            <div className="rounded-lg border border-[#E8DFC8] bg-[#F7F4EA] px-3 py-2.5">
+              <p className="text-[11px] leading-5 text-[#8B642F]">
+                Please verify all tenant details before saving your changes.
+              </p>
+            </div>
+
+            {/* ACTIONS */}
+
+            <div className="flex flex-col-reverse gap-2 border-t border-[#EEECE4] pt-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => navigate("/landlord/tenants")}
+                disabled={saving}
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[#E6E3D9] bg-white px-4 py-2.5 text-xs font-semibold text-[#526056] transition hover:bg-[#F7F4EA] disabled:opacity-50"
+              >
+                <X size={14} />
+                Cancel
+              </button>
+
+              <button
+                type="submit"
+                disabled={saving}
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#244B3C] px-5 py-2.5 text-xs font-semibold text-white transition hover:bg-[#193A2E] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {saving ? (
+                  <>
+                    <LoaderCircle size={14} className="animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save size={14} />
+                    Save Changes
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useMemo, useState } from "react";
 import api from "../../api/axios.js";
 
@@ -24,7 +25,6 @@ const Payments = () => {
 
   const summary = useMemo(() => {
     const paid = payments.filter((payment) => payment.status === "paid");
-
     const pending = payments.filter((payment) => payment.status !== "paid");
 
     const totalRevenue = paid.reduce(
@@ -46,277 +46,237 @@ const Payments = () => {
     };
   }, [payments]);
 
+  const formatAmount = (amount) =>
+    Number(amount || 0).toLocaleString("en-IN");
+
+  const getPaymentDate = (pay) =>
+    pay.paidAt ? new Date(pay.paidAt) : new Date(pay.createdAt);
+
+  const getStatusStyle = (isPaid) =>
+    isPaid
+      ? "bg-[#EAF2E9] text-[#3F7050]"
+      : "bg-[#F8F0E3] text-[#A47735]";
+
+  const Avatar = ({ name, fallback = "T", landlord = false }) => (
+    <div
+      className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${
+        landlord
+          ? "bg-[#F5EDDF] text-[#A47735]"
+          : "bg-[#E8EEE8] text-[#244B3C]"
+      }`}
+    >
+      {name?.charAt(0)?.toUpperCase() || fallback}
+    </div>
+  );
+
   /* ---------------- LOADING ---------------- */
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40 p-4 sm:p-6 lg:p-8">
-        <div className="max-w-7xl mx-auto space-y-6">
-          <div className="animate-pulse">
-            <div className="h-9 w-48 bg-slate-200 rounded-lg" />
-            <div className="h-4 w-80 bg-slate-200 rounded mt-3" />
+      <div className="bg-[#F7F8F5] p-3 sm:p-4 lg:p-5">
+        <div className="max-w-7xl mx-auto space-y-4 animate-pulse">
+          <div>
+            <div className="h-6 w-40 bg-[#E6E3D9] rounded-md" />
+            <div className="h-3 w-64 bg-[#E6E3D9] rounded mt-2" />
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {[1, 2, 3, 4].map((item) => (
               <div
                 key={item}
-                className="h-28 bg-white rounded-2xl border border-slate-200 animate-pulse"
+                className="h-20 bg-white rounded-xl border border-[#E6E3D9]"
               />
             ))}
           </div>
 
-          <div className="h-96 bg-white rounded-3xl border border-slate-200 animate-pulse" />
+          <div className="h-64 bg-white rounded-xl border border-[#E6E3D9]" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* ================================================= */}
+    <div className="bg-[#F7F8F5] p-3 sm:p-4 lg:p-5">
+      <div className="max-w-7xl mx-auto space-y-4">
         {/* HEADER */}
-        {/* ================================================= */}
-
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 p-6 sm:p-8 shadow-xl shadow-blue-100">
-          <div className="absolute -right-12 -top-20 w-56 h-56 rounded-full bg-white/10" />
-
-          <div className="absolute right-24 -bottom-24 w-48 h-48 rounded-full bg-white/10" />
-
-          <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-            <div>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-11 h-11 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center text-xl">
-                  💳
-                </div>
-
-                <span className="text-blue-100 text-sm font-medium">
-                  Financial Management
-                </span>
+        <div className="bg-[#244B3C] rounded-xl px-4 py-4 sm:px-5 sm:py-5 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 text-[#C6D8C8] text-xs font-medium mb-1">
+                <span>💳</span>
+                <span>Financial Management</span>
               </div>
 
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
+              <h1 className="text-xl sm:text-2xl font-bold text-white">
                 Payments
               </h1>
 
-              <p className="text-blue-100 mt-2 text-sm sm:text-base">
+              <p className="text-xs sm:text-sm text-[#D6E2D7] mt-1">
                 Monitor rental payments and transaction activity.
               </p>
             </div>
 
-            <div className="self-start sm:self-auto bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl px-5 py-4 text-white">
-              <p className="text-xs text-blue-100">Transactions</p>
-
-              <p className="text-2xl font-bold mt-1">{summary.total}</p>
+            <div className="shrink-0 bg-white/10 border border-white/15 rounded-lg px-3 py-2.5 text-right">
+              <p className="text-[10px] sm:text-xs text-[#D6E2D7]">
+                Transactions
+              </p>
+              <p className="text-xl font-bold text-white">
+                {summary.total}
+              </p>
             </div>
           </div>
         </div>
 
-        {/* ================================================= */}
         {/* SUMMARY CARDS */}
-        {/* ================================================= */}
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
-          {/* Total */}
-          <div className="group bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs sm:text-sm text-slate-500">
-                  Total Payments
-                </p>
-
-                <p className="text-xl sm:text-2xl font-bold text-slate-800 mt-1">
-                  {summary.total}
-                </p>
-              </div>
-
-              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                💳
-              </div>
-            </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="bg-white border border-[#E6E3D9] rounded-xl p-3 shadow-sm">
+            <p className="text-xs text-[#68756A]">Total Payments</p>
+            <p className="text-xl font-bold text-[#244B3C] mt-1">
+              {summary.total}
+            </p>
           </div>
 
-          {/* Paid */}
-          <div className="group bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs sm:text-sm text-slate-500">Paid</p>
-
-                <p className="text-xl sm:text-2xl font-bold text-emerald-600 mt-1">
-                  {summary.paid}
-                </p>
-              </div>
-
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                ✓
-              </div>
-            </div>
+          <div className="bg-white border border-[#E6E3D9] rounded-xl p-3 shadow-sm">
+            <p className="text-xs text-[#68756A]">Paid</p>
+            <p className="text-xl font-bold text-[#527C61] mt-1">
+              {summary.paid}
+            </p>
           </div>
 
-          {/* Pending */}
-          <div className="group bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs sm:text-sm text-slate-500">Pending</p>
-
-                <p className="text-xl sm:text-2xl font-bold text-amber-600 mt-1">
-                  {summary.pending}
-                </p>
-              </div>
-
-              <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                ⏳
-              </div>
-            </div>
+          <div className="bg-white border border-[#E6E3D9] rounded-xl p-3 shadow-sm">
+            <p className="text-xs text-[#68756A]">Pending</p>
+            <p className="text-xl font-bold text-[#B18442] mt-1">
+              {summary.pending}
+            </p>
           </div>
 
-          {/* Revenue */}
-          <div className="group bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all">
-            <div className="flex items-center justify-between">
-              <div className="min-w-0">
-                <p className="text-xs sm:text-sm text-slate-500">
-                  Total Revenue
-                </p>
-
-                <p className="text-xl sm:text-2xl font-bold text-violet-600 mt-1 truncate">
-                  ₹{summary.revenue.toLocaleString("en-IN")}
-                </p>
-              </div>
-
-              <div className="w-10 h-10 shrink-0 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center">
-                ₹
-              </div>
-            </div>
+          <div className="bg-white border border-[#E6E3D9] rounded-xl p-3 shadow-sm">
+            <p className="text-xs text-[#68756A]">Total Revenue</p>
+            <p className="text-xl font-bold text-[#244B3C] mt-1 truncate">
+              ₹{formatAmount(summary.revenue)}
+            </p>
           </div>
         </div>
 
-        {/* ================================================= */}
         {/* PAYMENT CONTENT */}
-        {/* ================================================= */}
-
         {payments.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-10 sm:p-16 text-center">
-            <div className="w-20 h-20 mx-auto rounded-3xl bg-blue-50 flex items-center justify-center text-4xl">
+          <div className="bg-white border border-[#E6E3D9] rounded-xl shadow-sm p-8 text-center">
+            <div className="w-14 h-14 mx-auto rounded-xl bg-[#EAF0E8] flex items-center justify-center text-3xl">
               💳
             </div>
 
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mt-5">
+            <h2 className="text-lg font-bold text-[#242B26] mt-3">
               No payments found
             </h2>
 
-            <p className="text-slate-500 mt-2">
+            <p className="text-sm text-[#68756A] mt-1">
               There are currently no payment transactions to display.
             </p>
           </div>
         ) : (
           <>
-            {/* ================================================= */}
             {/* MOBILE / TABLET PAYMENT CARDS */}
-            {/* ================================================= */}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:hidden gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:hidden gap-3">
               {payments.map((pay) => {
                 const isPaid = pay.status === "paid";
-
-                const paymentDate = pay.paidAt
-                  ? new Date(pay.paidAt)
-                  : new Date(pay.createdAt);
+                const paymentDate = getPaymentDate(pay);
 
                 return (
                   <div
                     key={pay._id}
-                    className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                    className="bg-white border border-[#E6E3D9] rounded-xl p-3 shadow-sm"
                   >
-                    {/* Top */}
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-11 h-11 shrink-0 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-                          {pay.tenant?.name?.charAt(0)?.toUpperCase() || "T"}
-                        </div>
+                    {/* TENANT AND STATUS */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Avatar
+                          name={pay.tenant?.name}
+                          fallback="T"
+                        />
 
                         <div className="min-w-0">
-                          <p className="font-bold text-slate-800 truncate">
+                          <p className="text-xs font-bold text-[#303B32] truncate">
                             {pay.tenant?.name || "N/A"}
                           </p>
-
-                          <p className="text-xs text-slate-400 truncate">
+                          <p className="text-[10px] text-[#8A958B] truncate">
                             {pay.tenant?.email || "No email"}
                           </p>
                         </div>
                       </div>
 
                       <span
-                        className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${
-                          isPaid
-                            ? "bg-emerald-50 text-emerald-700"
-                            : "bg-amber-50 text-amber-700"
-                        }`}
+                        className={`shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold capitalize ${getStatusStyle(
+                          isPaid,
+                        )}`}
                       >
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            isPaid ? "bg-emerald-500" : "bg-amber-500"
-                          }`}
-                        />
-
-                        {pay.status}
+                        <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                        {pay.status || "Unknown"}
                       </span>
                     </div>
 
-                    {/* Amount */}
-                    <div className="mt-5 p-4 rounded-2xl bg-slate-50">
-                      <p className="text-xs uppercase tracking-wide text-slate-400">
+                    {/* AMOUNT */}
+                    <div className="mt-3 px-3 py-2.5 rounded-lg bg-[#F7F8F5]">
+                      <p className="text-[10px] uppercase tracking-wide text-[#8A958B]">
                         Payment Amount
                       </p>
 
-                      <p className="text-2xl font-bold text-slate-800 mt-1">
-                        ₹{Number(pay.amount || 0).toLocaleString("en-IN")}
+                      <p className="text-xl font-bold text-[#244B3C] mt-0.5">
+                        ₹{formatAmount(pay.amount)}
                       </p>
                     </div>
 
-                    {/* Details */}
-                    <div className="grid grid-cols-2 gap-4 mt-5">
-                      <div>
-                        <p className="text-xs text-slate-400">Property</p>
-
-                        <p className="text-sm font-semibold text-slate-700 mt-1 truncate">
+                    {/* DETAILS */}
+                    <div className="grid grid-cols-2 gap-3 mt-3">
+                      <div className="min-w-0">
+                        <p className="text-[10px] text-[#8A958B]">
+                          Property
+                        </p>
+                        <p className="text-xs font-semibold text-[#3C493F] mt-1 truncate">
                           {pay.property?.title || "N/A"}
                         </p>
-
-                        <p className="text-xs text-slate-400">
+                        <p className="text-[10px] text-[#8A958B] truncate">
                           {pay.property?.city || ""}
                         </p>
                       </div>
 
-                      <div>
-                        <p className="text-xs text-slate-400">Landlord</p>
-
-                        <p className="text-sm font-semibold text-slate-700 mt-1 truncate">
+                      <div className="min-w-0">
+                        <p className="text-[10px] text-[#8A958B]">
+                          Landlord
+                        </p>
+                        <p className="text-xs font-semibold text-[#3C493F] mt-1 truncate">
                           {pay.landlord?.name || "N/A"}
                         </p>
                       </div>
                     </div>
 
-                    {/* Date */}
-                    <div className="mt-4 pt-4 border-t border-slate-100">
-                      <p className="text-xs text-slate-400">Transaction Date</p>
+                    {/* DATE */}
+                    <div className="mt-3 pt-2.5 border-t border-[#EEEDE7] flex items-center justify-between gap-2">
+                      <span className="text-[10px] text-[#8A958B]">
+                        Transaction Date
+                      </span>
 
-                      <p className="text-sm font-medium text-slate-700 mt-1">
+                      <span className="text-xs font-medium text-[#526056]">
                         {paymentDate.toLocaleDateString("en-IN", {
                           day: "2-digit",
                           month: "short",
                           year: "numeric",
                         })}
-                      </p>
+                      </span>
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex gap-3 mt-5">
-                      <button className="flex-1 py-2.5 rounded-xl bg-blue-50 text-blue-600 font-semibold text-sm hover:bg-blue-100 transition">
+                    {/* ACTIONS */}
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        type="button"
+                        className="flex-1 py-2 rounded-lg bg-[#EAF0E8] text-[#244B3C] font-semibold text-xs hover:bg-[#DCE8DC] transition"
+                      >
                         View
                       </button>
 
-                      <button className="flex-1 py-2.5 rounded-xl bg-emerald-50 text-emerald-600 font-semibold text-sm hover:bg-emerald-100 transition">
+                      <button
+                        type="button"
+                        className="flex-1 py-2 rounded-lg bg-[#EAF2E9] text-[#527C61] font-semibold text-xs hover:bg-[#DCE8DC] transition"
+                      >
                         Receipt
                       </button>
                     </div>
@@ -325,31 +285,27 @@ const Payments = () => {
               })}
             </div>
 
-            {/* ================================================= */}
             {/* DESKTOP TABLE */}
-            {/* ================================================= */}
-
-            <div className="hidden xl:block bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
-              {/* Table Header */}
-              <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+            <div className="hidden xl:block bg-white border border-[#E6E3D9] rounded-xl shadow-sm overflow-hidden">
+              {/* TABLE HEADER */}
+              <div className="px-4 py-3 border-b border-[#EAE9E2] flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-lg font-bold text-slate-800">
+                  <h2 className="text-sm font-bold text-[#242B26]">
                     Payment Transactions
                   </h2>
-
-                  <p className="text-sm text-slate-500 mt-1">
+                  <p className="text-xs text-[#68756A] mt-0.5">
                     Complete transaction history
                   </p>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <div className="px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold">
-                    ₹{summary.revenue.toLocaleString("en-IN")} collected
+                <div className="flex items-center gap-2 flex-wrap justify-end">
+                  <div className="px-2.5 py-1 rounded-full bg-[#EAF2E9] text-[#3F7050] text-[10px] font-semibold">
+                    ₹{formatAmount(summary.revenue)} collected
                   </div>
 
                   {summary.pendingAmount > 0 && (
-                    <div className="px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 text-xs font-semibold">
-                      ₹{summary.pendingAmount.toLocaleString("en-IN")} pending
+                    <div className="px-2.5 py-1 rounded-full bg-[#F8F0E3] text-[#A47735] text-[10px] font-semibold">
+                      ₹{formatAmount(summary.pendingAmount)} pending
                     </div>
                   )}
                 </div>
@@ -358,136 +314,113 @@ const Payments = () => {
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200">
-                      <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Tenant
-                      </th>
-
-                      <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Property
-                      </th>
-
-                      <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Landlord
-                      </th>
-
-                      <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Amount
-                      </th>
-
-                      <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Status
-                      </th>
-
-                      <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Date
-                      </th>
-
-                      <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">
-                        Actions
-                      </th>
+                    <tr className="bg-[#F7F8F5] border-b border-[#E6E3D9]">
+                      {[
+                        "Tenant",
+                        "Property",
+                        "Landlord",
+                        "Amount",
+                        "Status",
+                        "Date",
+                        "Actions",
+                      ].map((heading) => (
+                        <th
+                          key={heading}
+                          className={`px-4 py-3 text-[10px] font-semibold text-[#68756A] uppercase tracking-wider ${
+                            heading === "Actions" ? "text-right" : ""
+                          }`}
+                        >
+                          {heading}
+                        </th>
+                      ))}
                     </tr>
                   </thead>
 
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-[#F0EFE9]">
                     {payments.map((pay) => {
                       const isPaid = pay.status === "paid";
-
-                      const paymentDate = pay.paidAt
-                        ? new Date(pay.paidAt)
-                        : new Date(pay.createdAt);
+                      const paymentDate = getPaymentDate(pay);
 
                       return (
                         <tr
                           key={pay._id}
-                          className="group hover:bg-blue-50/40 transition"
+                          className="hover:bg-[#F8FAF6] transition"
                         >
-                          {/* Tenant */}
-                          <td className="px-6 py-5">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
-                                {pay.tenant?.name?.charAt(0)?.toUpperCase() ||
-                                  "T"}
-                              </div>
+                          {/* TENANT */}
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              <Avatar
+                                name={pay.tenant?.name}
+                                fallback="T"
+                              />
 
-                              <div>
-                                <p className="font-semibold text-slate-800">
+                              <div className="min-w-0">
+                                <p className="text-xs font-semibold text-[#303B32]">
                                   {pay.tenant?.name || "N/A"}
                                 </p>
-
-                                <p className="text-xs text-slate-400">
+                                <p className="text-[10px] text-[#8A958B] truncate max-w-[140px]">
                                   {pay.tenant?.email || ""}
                                 </p>
                               </div>
                             </div>
                           </td>
 
-                          {/* Property */}
-                          <td className="px-6 py-5">
-                            <p className="font-semibold text-slate-700">
+                          {/* PROPERTY */}
+                          <td className="px-4 py-3">
+                            <p className="text-xs font-semibold text-[#3C493F] max-w-[150px] truncate">
                               {pay.property?.title || "N/A"}
                             </p>
-
-                            <p className="text-xs text-slate-400 mt-1">
+                            <p className="text-[10px] text-[#8A958B] mt-0.5">
                               📍 {pay.property?.city || "Unknown"}
                             </p>
                           </td>
 
-                          {/* Landlord */}
-                          <td className="px-6 py-5">
+                          {/* LANDLORD */}
+                          <td className="px-4 py-3">
                             <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center text-xs font-bold">
-                                {pay.landlord?.name?.charAt(0)?.toUpperCase() ||
-                                  "L"}
-                              </div>
-
-                              <span className="font-medium text-slate-700">
+                              <Avatar
+                                name={pay.landlord?.name}
+                                fallback="L"
+                                landlord
+                              />
+                              <span className="text-xs font-medium text-[#3C493F]">
                                 {pay.landlord?.name || "N/A"}
                               </span>
                             </div>
                           </td>
 
-                          {/* Amount */}
-                          <td className="px-6 py-5">
-                            <p className="font-bold text-slate-800">
-                              ₹{Number(pay.amount || 0).toLocaleString("en-IN")}
+                          {/* AMOUNT */}
+                          <td className="px-4 py-3">
+                            <p className="text-xs font-bold text-[#244B3C]">
+                              ₹{formatAmount(pay.amount)}
                             </p>
-
-                            <p className="text-xs text-slate-400">
-                              rental payment
+                            <p className="text-[10px] text-[#8A958B]">
+                              Rental payment
                             </p>
                           </td>
 
-                          {/* Status */}
-                          <td className="px-6 py-5">
+                          {/* STATUS */}
+                          <td className="px-4 py-3">
                             <span
-                              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold ${
-                                isPaid
-                                  ? "bg-emerald-50 text-emerald-700"
-                                  : "bg-amber-50 text-amber-700"
-                              }`}
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold capitalize ${getStatusStyle(
+                                isPaid,
+                              )}`}
                             >
-                              <span
-                                className={`w-1.5 h-1.5 rounded-full ${
-                                  isPaid ? "bg-emerald-500" : "bg-amber-500"
-                                }`}
-                              />
-
-                              {pay.status}
+                              <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                              {pay.status || "Unknown"}
                             </span>
                           </td>
 
-                          {/* Date */}
-                          <td className="px-6 py-5">
-                            <p className="text-sm font-medium text-slate-700">
+                          {/* DATE */}
+                          <td className="px-4 py-3">
+                            <p className="text-xs font-medium text-[#3C493F]">
                               {paymentDate.toLocaleDateString("en-IN", {
                                 day: "2-digit",
                                 month: "short",
                                 year: "numeric",
                               })}
                             </p>
-
-                            <p className="text-xs text-slate-400 mt-1">
+                            <p className="text-[10px] text-[#8A958B] mt-0.5">
                               {paymentDate.toLocaleTimeString("en-IN", {
                                 hour: "2-digit",
                                 minute: "2-digit",
@@ -495,14 +428,20 @@ const Payments = () => {
                             </p>
                           </td>
 
-                          {/* Actions */}
-                          <td className="px-6 py-5">
+                          {/* ACTIONS */}
+                          <td className="px-4 py-3">
                             <div className="flex justify-end gap-2">
-                              <button className="px-3 py-2 rounded-xl bg-blue-50 text-blue-600 text-sm font-semibold hover:bg-blue-100 transition">
+                              <button
+                                type="button"
+                                className="px-3 py-1.5 rounded-lg bg-[#EAF0E8] text-[#244B3C] text-xs font-semibold hover:bg-[#DCE8DC] transition"
+                              >
                                 View
                               </button>
 
-                              <button className="px-3 py-2 rounded-xl bg-emerald-50 text-emerald-600 text-sm font-semibold hover:bg-emerald-100 transition">
+                              <button
+                                type="button"
+                                className="px-3 py-1.5 rounded-lg bg-[#EAF2E9] text-[#527C61] text-xs font-semibold hover:bg-[#DCE8DC] transition"
+                              >
                                 Receipt
                               </button>
                             </div>

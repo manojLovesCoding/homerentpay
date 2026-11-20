@@ -1,4 +1,19 @@
+
 import React, { useEffect, useState } from "react";
+import {
+  CalendarDays,
+  CheckCircle2,
+  Clock3,
+  CreditCard,
+  Home,
+  IndianRupee,
+  MapPin,
+  RefreshCw,
+  ShieldCheck,
+  Wallet,
+} from "lucide-react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import api from "../../api/axios.js";
 
 const RentStatus = () => {
@@ -19,7 +34,7 @@ const RentStatus = () => {
 
       if (data.property?._id) {
         const status = await api.get(
-          `/payment/status?propertyId=${data.property._id}`,
+          `/payment/status?propertyId=${data.property._id}`
         );
 
         setPaid(status.data.paid);
@@ -32,12 +47,20 @@ const RentStatus = () => {
   };
 
   const handlePayment = async () => {
+    if (!property?._id || paying || paid) return;
+
     try {
       setPaying(true);
 
       const { data } = await api.post("/payment/create-order", {
         propertyId: property._id,
       });
+
+      if (!window.Razorpay) {
+        throw new Error(
+          "Razorpay is not available. Please refresh the page and try again."
+        );
+      }
 
       const options = {
         key: data.key,
@@ -56,12 +79,24 @@ const RentStatus = () => {
             });
 
             if (verify.data.success) {
-              alert("Payment successful");
+              toast.success("Rent payment successful!", {
+                autoClose: 3000,
+              });
+
+              setPaid(true);
               await getTenantProperty();
+            } else {
+              toast.error(
+                verify.data.message || "Payment verification failed."
+              );
             }
           } catch (error) {
             console.log(error);
-            alert("Payment verification failed");
+
+            toast.error(
+              error.response?.data?.message ||
+                "Payment verification failed. Please contact support."
+            );
           } finally {
             setPaying(false);
           }
@@ -72,7 +107,7 @@ const RentStatus = () => {
         },
 
         theme: {
-          color: "#4f46e5",
+          color: "#244B3C",
         },
 
         modal: {
@@ -86,55 +121,28 @@ const RentStatus = () => {
 
       razorpay.on("payment.failed", function (response) {
         console.log(response.error);
+
         setPaying(false);
-        alert("Payment failed. Please try again.");
+
+        toast.error(
+          response.error?.description ||
+            "Payment failed. Please try again."
+        );
       });
 
       razorpay.open();
     } catch (error) {
       console.log(error);
 
-      alert(error.response?.data?.message || "Payment failed");
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Unable to initiate payment. Please try again."
+      );
+
       setPaying(false);
     }
   };
-
-  // Loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
-        <div className="max-w-5xl mx-auto animate-pulse">
-          <div className="h-8 w-48 bg-slate-200 rounded-lg mb-8" />
-
-          <div className="grid lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 h-96 bg-white rounded-3xl" />
-            <div className="h-96 bg-white rounded-3xl" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // No property
-  if (!property) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-        <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-8 text-center">
-          <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-3xl bg-blue-50 text-4xl">
-            🏠
-          </div>
-
-          <h2 className="text-2xl font-bold text-slate-900">
-            No Property Assigned
-          </h2>
-
-          <p className="mt-2 text-sm text-slate-500">
-            You don't have a rental property assigned to your account yet.
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   const currentDate = new Date();
 
@@ -144,295 +152,351 @@ const RentStatus = () => {
 
   const currentYear = currentDate.getFullYear();
 
+  if (loading) {
+    return (
+      <div className="bg-[#F7F8F5] px-3 py-4 sm:px-5">
+        <div className="mx-auto max-w-7xl animate-pulse">
+          <div className="mb-4 h-7 w-44 rounded bg-[#E6E9E1]" />
+
+          <div className="grid gap-3 lg:grid-cols-3">
+            <div className="h-64 rounded-2xl bg-white lg:col-span-2" />
+            <div className="h-64 rounded-2xl bg-white" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!property) {
+    return (
+      <div className="flex min-h-[55vh] items-center justify-center bg-[#F7F8F5] px-4 py-6">
+        <div className="w-full max-w-sm rounded-2xl border border-[#E6E3D9] bg-white p-6 text-center shadow-sm">
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-xl bg-[#EAF0E8] text-[#244B3C]">
+            <Home size={30} />
+          </div>
+
+          <h2 className="text-xl font-bold text-[#242B26]">
+            No Property Assigned
+          </h2>
+
+          <p className="mt-2 text-sm text-[#68756A]">
+            You don't have a rental property assigned to your account yet.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Gradient header background */}
-      <div className="absolute inset-x-0 top-0 h-72 bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-600" />
+    <div className="bg-[#F7F8F5] px-3 py-3 sm:px-5 sm:py-4">
+      {/* Toast Notifications */}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        draggable
+        theme="light"
+        toastStyle={{
+          borderRadius: "12px",
+          fontSize: "13px",
+          fontWeight: "500",
+        }}
+      />
 
-      <main className="relative px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
-        <div className="max-w-5xl mx-auto">
-          {/* Header */}
-          <div className="mb-6 sm:mb-8 text-white">
-            <p className="text-sm font-medium text-blue-100">Tenant Portal</p>
+      <main className="mx-auto max-w-7xl">
+        {/* Heading */}
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#527C61]">
+              Tenant Portal
+            </p>
 
-            <h1 className="mt-1 text-2xl sm:text-3xl lg:text-4xl font-bold">
+            <h1 className="text-xl font-bold leading-tight text-[#242B26] sm:text-2xl">
               Monthly Rent
             </h1>
 
-            <p className="mt-2 text-sm sm:text-base text-blue-100">
+            <p className="mt-1 text-xs text-[#68756A]">
               Manage your current month's rental payment.
             </p>
           </div>
 
-          {/* Main Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-6">
-            {/* Payment Card */}
-            <div className="lg:col-span-2 bg-white rounded-3xl shadow-xl shadow-slate-900/10 overflow-hidden">
-              {/* Payment header */}
-              <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-600 p-6 sm:p-8 text-white">
-                {/* Decorative circles */}
-                <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-white/10" />
-                <div className="absolute -bottom-16 right-20 h-32 w-32 rounded-full bg-white/5" />
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold ${
+              paid
+                ? "border-[#DCE7DA] bg-[#EAF0E8] text-[#244B3C]"
+                : "border-[#EBDDBB] bg-[#FBF4E5] text-[#946B25]"
+            }`}
+          >
+            {paid ? (
+              <CheckCircle2 size={14} />
+            ) : (
+              <Clock3 size={14} />
+            )}
 
-                <div className="relative">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="text-sm font-medium text-blue-100">
-                        Payment for
-                      </p>
+            {paid ? "Paid" : "Payment Due"}
+          </span>
+        </div>
 
-                      <h2 className="mt-1 text-2xl sm:text-3xl font-bold">
-                        {currentMonth} {currentYear}
-                      </h2>
-                    </div>
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+          {/* Main Payment Card */}
+          <section className="overflow-hidden rounded-2xl border border-[#E6E3D9] bg-white shadow-sm lg:col-span-2">
+            {/* Rent Banner */}
+            <div className="relative overflow-hidden bg-[#244B3C] px-4 py-4 text-white sm:px-5">
+              <div className="absolute -right-8 -top-12 h-36 w-36 rounded-full bg-white/[0.06]" />
+              <div className="absolute -bottom-16 right-24 h-32 w-32 rounded-full bg-white/[0.05]" />
 
-                    <div
-                      className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${
-                        paid ? "bg-green-400/20" : "bg-yellow-400/20"
-                      }`}
-                    >
-                      <span className="text-2xl">{paid ? "✓" : "₹"}</span>
-                    </div>
-                  </div>
-
-                  {/* Rent amount */}
-                  <div className="mt-8">
-                    <p className="text-sm text-blue-100">Amount due</p>
-
-                    <div className="flex items-baseline gap-2 mt-1">
-                      <span className="text-4xl sm:text-5xl font-extrabold">
-                        ₹{property.rent}
-                      </span>
-
-                      <span className="text-blue-100">/ month</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Payment details */}
-              <div className="p-5 sm:p-8">
-                <h3 className="text-lg font-bold text-slate-900 mb-5">
-                  Payment Details
-                </h3>
-
-                <div className="space-y-3">
-                  {/* Property */}
-                  <div className="flex items-center justify-between gap-4 rounded-2xl bg-slate-50 p-4">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
-                        🏠
-                      </div>
-
-                      <div className="min-w-0">
-                        <p className="text-xs text-slate-400">Property</p>
-
-                        <p className="font-semibold text-slate-800 truncate">
-                          {property.title}
-                        </p>
-                      </div>
-                    </div>
-
-                    <span className="text-sm font-medium text-slate-500 hidden sm:block">
-                      Rental Property
-                    </span>
-                  </div>
-
-                  {/* Month */}
-                  <div className="flex items-center justify-between gap-4 rounded-2xl bg-slate-50 p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm">
-                        📅
-                      </div>
-
-                      <div>
-                        <p className="text-xs text-slate-400">Billing Period</p>
-
-                        <p className="font-semibold text-slate-800">
-                          {currentMonth} {currentYear}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Status */}
-                  <div
-                    className={`flex items-center justify-between rounded-2xl p-4 ${
-                      paid ? "bg-green-50" : "bg-amber-50"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                          paid ? "bg-green-100" : "bg-amber-100"
-                        }`}
-                      >
-                        {paid ? "✓" : "!"}
-                      </div>
-
-                      <div>
-                        <p className="text-xs text-slate-400">Payment Status</p>
-
-                        <p
-                          className={`font-bold ${
-                            paid ? "text-green-700" : "text-amber-700"
-                          }`}
-                        >
-                          {paid ? "Paid" : "Payment Pending"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-bold ${
-                        paid
-                          ? "bg-green-100 text-green-700"
-                          : "bg-amber-100 text-amber-700"
-                      }`}
-                    >
-                      {paid ? "COMPLETED" : "DUE"}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Payment button */}
-                <button
-                  disabled={paid || paying}
-                  onClick={handlePayment}
-                  className={`group relative mt-7 w-full overflow-hidden rounded-2xl py-4 text-sm sm:text-base font-bold text-white shadow-lg transition-all duration-300 ${
-                    paid
-                      ? "bg-slate-300 cursor-not-allowed shadow-none"
-                      : paying
-                        ? "bg-indigo-400 cursor-wait"
-                        : "bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 shadow-blue-500/20 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-500/30 active:scale-[0.98]"
-                  }`}
-                >
-                  {!paid && !paying && (
-                    <span className="absolute inset-0 -translate-x-full bg-white/10 transition-transform duration-700 group-hover:translate-x-full" />
-                  )}
-
-                  <span className="relative flex items-center justify-center gap-2">
-                    {paid ? (
-                      <>
-                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/20">
-                          ✓
-                        </span>
-                        Rent Paid
-                      </>
-                    ) : paying ? (
-                      <>
-                        <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                        Processing Payment...
-                      </>
-                    ) : (
-                      <>
-                        <span>💳</span>
-                        Pay Rent Securely
-                        <span className="transition-transform group-hover:translate-x-1">
-                          →
-                        </span>
-                      </>
-                    )}
-                  </span>
-                </button>
-
-                {!paid && (
-                  <p className="mt-3 text-center text-xs text-slate-400">
-                    You will be redirected to the secure Razorpay payment
-                    window.
+              <div className="relative flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-medium text-white/70">
+                    Payment for
                   </p>
-                )}
+
+                  <h2 className="mt-0.5 text-xl font-bold sm:text-2xl">
+                    {currentMonth} {currentYear}
+                  </h2>
+                </div>
+
+                <div className="text-right">
+                  <p className="text-xs text-white/70">Monthly Rent</p>
+
+                  <div className="mt-0.5 flex items-center justify-end gap-1">
+                    <IndianRupee size={21} />
+
+                    <span className="text-3xl font-extrabold">
+                      {Number(property.rent || 0).toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Right side information */}
-            <div className="space-y-5">
-              {/* Status card */}
-              <div
-                className={`rounded-3xl p-6 shadow-xl ${
-                  paid
-                    ? "bg-gradient-to-br from-emerald-500 to-green-600 text-white"
-                    : "bg-gradient-to-br from-amber-400 to-orange-500 text-white"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-white/75">Current Status</p>
-
-                    <h3 className="mt-1 text-2xl font-bold">
-                      {paid ? "Payment Complete" : "Payment Due"}
-                    </h3>
-                  </div>
-
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15 text-3xl">
-                    {paid ? "✓" : "₹"}
-                  </div>
-                </div>
-
-                <p className="mt-5 text-sm leading-6 text-white/80">
-                  {paid
-                    ? "Your rent payment for this month has been successfully completed."
-                    : "Your monthly rent payment is currently pending. Pay before your due date to keep your account up to date."}
-                </p>
-              </div>
-
-              {/* Property card */}
-              <div className="bg-white rounded-3xl shadow-xl shadow-slate-900/10 p-6">
-                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                  Rental Property
-                </p>
-
-                <h3 className="mt-2 text-xl font-bold text-slate-900">
-                  {property.title}
+            <div className="p-3 sm:p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="text-sm font-bold text-[#242B26]">
+                  Payment Details
                 </h3>
 
-                <div className="mt-4 flex items-start gap-3">
-                  <span className="text-lg">📍</span>
-
-                  <p className="text-sm leading-6 text-slate-500">
-                    {property.address}
-                    {property.city && `, ${property.city}`}
-                  </p>
-                </div>
-
-                <div className="mt-5 border-t border-slate-100 pt-5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-500">Monthly Rent</span>
-
-                    <span className="font-bold text-blue-600">
-                      ₹{property.rent}
-                    </span>
-                  </div>
-                </div>
+                <span className="text-[11px] text-[#879187]">
+                  Current billing period
+                </span>
               </div>
 
-              {/* Security card */}
-              <div className="rounded-3xl border border-blue-100 bg-blue-50 p-6">
-                <div className="flex gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100">
-                    🔒
+              {/* Payment Information */}
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                <div className="flex items-center gap-2.5 rounded-xl border border-[#E6E3D9] bg-[#FAFBF8] p-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#EAF0E8] text-[#244B3C]">
+                    <Home size={17} />
+                  </div>
+
+                  <div className="min-w-0">
+                    <p className="text-[10px] text-[#879187]">
+                      Property
+                    </p>
+
+                    <p className="truncate text-xs font-semibold text-[#344239]">
+                      {property.title}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2.5 rounded-xl border border-[#E6E3D9] bg-[#FAFBF8] p-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#EAF0E8] text-[#244B3C]">
+                    <CalendarDays size={17} />
                   </div>
 
                   <div>
-                    <h3 className="font-bold text-blue-900">Secure Payments</h3>
+                    <p className="text-[10px] text-[#879187]">
+                      Billing Period
+                    </p>
 
-                    <p className="mt-1 text-xs sm:text-sm leading-5 text-blue-700/70">
-                      Your payment is processed securely through Razorpay. We
-                      never store your card or banking information.
+                    <p className="text-xs font-semibold text-[#344239]">
+                      {currentMonth} {currentYear}
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  className={`flex items-center gap-2.5 rounded-xl border p-3 ${
+                    paid
+                      ? "border-[#DCE7DA] bg-[#F2F6F0]"
+                      : "border-[#EBDDBB] bg-[#FBF7ED]"
+                  }`}
+                >
+                  <div
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+                      paid
+                        ? "bg-[#E0EBDD] text-[#244B3C]"
+                        : "bg-[#F5EACD] text-[#946B25]"
+                    }`}
+                  >
+                    {paid ? (
+                      <CheckCircle2 size={17} />
+                    ) : (
+                      <Clock3 size={17} />
+                    )}
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] text-[#879187]">
+                      Status
+                    </p>
+
+                    <p
+                      className={`text-xs font-bold ${
+                        paid ? "text-[#244B3C]" : "text-[#946B25]"
+                      }`}
+                    >
+                      {paid ? "Completed" : "Payment Pending"}
                     </p>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Footer note */}
-          <div className="mt-6 text-center">
-            <p className="text-xs sm:text-sm text-slate-400">
-              Keep your payment confirmation for your records.
-            </p>
-          </div>
+              {/* Payment Button */}
+              <button
+                disabled={paid || paying}
+                onClick={handlePayment}
+                className={`mt-3 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-white transition ${
+                  paid
+                    ? "cursor-not-allowed bg-[#A8BDA5]"
+                    : paying
+                      ? "cursor-wait bg-[#527C61]"
+                      : "bg-[#244B3C] hover:bg-[#193A2E] active:scale-[0.99]"
+                }`}
+              >
+                {paid ? (
+                  <>
+                    <CheckCircle2 size={17} />
+                    Rent Paid Successfully
+                  </>
+                ) : paying ? (
+                  <>
+                    <RefreshCw size={16} className="animate-spin" />
+                    Processing Payment...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard size={17} />
+                    Pay Rent Securely
+                  </>
+                )}
+              </button>
+
+              {!paid && (
+                <p className="mt-2 text-center text-[10px] text-[#879187]">
+                  Secure payment powered by Razorpay.
+                </p>
+              )}
+            </div>
+          </section>
+
+          {/* Side Information */}
+          <aside className="flex flex-col gap-3">
+            {/* Payment Status */}
+            <div
+              className={`rounded-2xl border p-4 ${
+                paid
+                  ? "border-[#DCE7DA] bg-[#EAF0E8]"
+                  : "border-[#EBDDBB] bg-[#FBF4E5]"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <div
+                  className={`flex h-9 w-9 items-center justify-center rounded-lg ${
+                    paid
+                      ? "bg-white text-[#244B3C]"
+                      : "bg-white text-[#946B25]"
+                  }`}
+                >
+                  {paid ? (
+                    <CheckCircle2 size={19} />
+                  ) : (
+                    <Wallet size={19} />
+                  )}
+                </div>
+
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[#7B887D]">
+                    Current Status
+                  </p>
+
+                  <h3
+                    className={`text-sm font-bold ${
+                      paid ? "text-[#244B3C]" : "text-[#946B25]"
+                    }`}
+                  >
+                    {paid ? "Payment Complete" : "Payment Due"}
+                  </h3>
+                </div>
+              </div>
+
+              <p className="mt-2 text-xs leading-5 text-[#68756A]">
+                {paid
+                  ? "Your rent payment for this month has been successfully completed."
+                  : "Your monthly rent payment is pending. Please complete it before your due date."}
+              </p>
+            </div>
+
+            {/* Property Summary */}
+            <div className="rounded-2xl border border-[#E6E3D9] bg-white p-4 shadow-sm">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[#879187]">
+                Rental Property
+              </p>
+
+              <h3 className="mt-1 text-sm font-bold text-[#242B26]">
+                {property.title}
+              </h3>
+
+              <div className="mt-2 flex items-start gap-2 text-xs leading-5 text-[#68756A]">
+                <MapPin
+                  size={15}
+                  className="mt-0.5 shrink-0 text-[#527C61]"
+                />
+
+                <p>
+                  {property.address}
+                  {property.city && `, ${property.city}`}
+                </p>
+              </div>
+
+              <div className="mt-3 flex items-center justify-between border-t border-[#E6E3D9] pt-3">
+                <span className="text-xs text-[#68756A]">
+                  Monthly Rent
+                </span>
+
+                <span className="flex items-center text-sm font-bold text-[#244B3C]">
+                  <IndianRupee size={14} />
+                  {Number(property.rent || 0).toLocaleString("en-IN")}
+                </span>
+              </div>
+            </div>
+
+            {/* Security Note */}
+            <div className="flex items-start gap-3 rounded-2xl border border-[#E6E3D9] bg-white p-4">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#EAF0E8] text-[#244B3C]">
+                <ShieldCheck size={19} />
+              </div>
+
+              <div>
+                <h3 className="text-xs font-bold text-[#344239]">
+                  Secure Payments
+                </h3>
+
+                <p className="mt-1 text-[11px] leading-4 text-[#68756A]">
+                  Payments are securely processed through Razorpay. Your
+                  banking details are not stored here.
+                </p>
+              </div>
+            </div>
+          </aside>
         </div>
+
+        <p className="mt-3 text-center text-[10px] text-[#879187]">
+          Keep your payment confirmation for your records.
+        </p>
       </main>
     </div>
   );

@@ -1,4 +1,17 @@
+
 import React, { useEffect, useState } from "react";
+import {
+  Wallet,
+  Clock3,
+  Receipt,
+  TrendingUp,
+  CalendarDays,
+  CheckCircle2,
+  CreditCard,
+  IndianRupee,
+  RefreshCw,
+} from "lucide-react";
+import toast from "react-hot-toast";
 import api from "../../api/axios";
 
 const Payments = () => {
@@ -12,39 +25,28 @@ const Payments = () => {
   const fetchPayments = async () => {
     try {
       const res = await api.get("/payment/landlord-summary");
-
       setPayments(res.data.payments || []);
     } catch (err) {
-      console.log(err.response?.data?.message || "Failed to load payments");
+      toast.error(err.response?.data?.message || "Failed to load payments");
     } finally {
       setLoading(false);
     }
   };
 
-  /* ============================================================
-     HELPERS
-  ============================================================ */
-
   const formatMonth = (year, month) => {
     if (!year || !month) return "—";
 
-    return new Date(year, month - 1).toLocaleString("default", {
+    return new Date(year, month - 1).toLocaleString("en-IN", {
       month: "long",
       year: "numeric",
     });
   };
 
-  const formatAmount = (amount) => {
-    return new Intl.NumberFormat("en-IN").format(Number(amount || 0));
-  };
+  const formatAmount = (amount) =>
+    new Intl.NumberFormat("en-IN").format(Number(amount || 0));
 
-  const getInitial = (name) => {
-    return name?.trim()?.charAt(0)?.toUpperCase() || "T";
-  };
-
-  /* ============================================================
-     STATS
-  ============================================================ */
+  const getInitial = (name) =>
+    name?.trim()?.charAt(0)?.toUpperCase() || "T";
 
   const totalCollected = payments
     .filter((payment) => payment.status === "paid")
@@ -55,282 +57,221 @@ const Payments = () => {
     .reduce((total, payment) => total + Number(payment.amount || 0), 0);
 
   const paidCount = payments.filter(
-    (payment) => payment.status === "paid",
+    (payment) => payment.status === "paid"
   ).length;
 
   const pendingCount = payments.filter(
-    (payment) => payment.status !== "paid",
+    (payment) => payment.status !== "paid"
   ).length;
 
-  /* ============================================================
-     LOADING
-  ============================================================ */
+  const collectionRate = payments.length
+    ? Math.round((paidCount / payments.length) * 100)
+    : 0;
+
+  const stats = [
+    {
+      title: "Total Collected",
+      value: `₹${formatAmount(totalCollected)}`,
+      subtitle: `${paidCount} successful payments`,
+      icon: Wallet,
+      iconBg: "bg-[#EAF1E9]",
+      iconColor: "text-[#527C61]",
+      accent: "border-[#A8BDA5]",
+    },
+    {
+      title: "Pending Rent",
+      value: `₹${formatAmount(totalPending)}`,
+      subtitle: `${pendingCount} pending payments`,
+      icon: Clock3,
+      iconBg: "bg-[#F7F0E2]",
+      iconColor: "text-[#B1843F]",
+      accent: "border-[#D6A45D]",
+    },
+    {
+      title: "Total Payments",
+      value: payments.length,
+      subtitle: "All recorded transactions",
+      icon: Receipt,
+      iconBg: "bg-[#EDF1EB]",
+      iconColor: "text-[#527C61]",
+      accent: "border-[#A8BDA5]",
+    },
+    {
+      title: "Collection Rate",
+      value: `${collectionRate}%`,
+      subtitle: "Payment success rate",
+      icon: TrendingUp,
+      iconBg: "bg-[#F7F4EA]",
+      iconColor: "text-[#B1843F]",
+      accent: "border-[#D6A45D]",
+    },
+  ];
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
-        <div className="mx-auto max-w-6xl">
-          {/* Header skeleton */}
-
-          <div className="mb-6">
-            <div className="h-4 w-28 animate-pulse rounded bg-slate-200" />
-
-            <div className="mt-4 h-9 w-48 animate-pulse rounded-lg bg-slate-200" />
-
-            <div className="mt-2 h-4 w-80 max-w-full animate-pulse rounded bg-slate-100" />
+      <div className="bg-[#F7F8F5] p-3 sm:p-4">
+        <div className="mx-auto max-w-6xl animate-pulse">
+          <div className="mb-5">
+            <div className="h-3 w-28 rounded bg-[#E6E3D9]" />
+            <div className="mt-3 h-7 w-44 rounded bg-[#E6E3D9]" />
+            <div className="mt-2 h-3 w-64 max-w-full rounded bg-[#E6E3D9]" />
           </div>
 
-          {/* Stats skeleton */}
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
             {[1, 2, 3, 4].map((item) => (
               <div
                 key={item}
-                className="h-32 animate-pulse rounded-2xl bg-white shadow-sm"
+                className="h-28 rounded-xl border border-[#E6E3D9] bg-white"
               />
             ))}
           </div>
 
-          {/* Table skeleton */}
-
-          <div className="mt-6 h-96 animate-pulse rounded-3xl bg-white shadow-sm" />
+          <div className="mt-4 h-72 rounded-2xl border border-[#E6E3D9] bg-white" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
+    <div className="bg-[#F7F8F5] p-3 sm:p-4">
       <div className="mx-auto max-w-6xl">
-        {/* =====================================================
-            HEADER
-        ====================================================== */}
 
-        <div className="mb-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-600">
-                <span className="h-2 w-2 rounded-full bg-blue-500" />
-                Financial Overview
-              </div>
-
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-                Payments
-              </h1>
-
-              <p className="mt-1 text-sm text-slate-500 sm:text-base">
-                Track your rental income and payment activity.
-              </p>
+        {/* Header */}
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="mb-1.5 inline-flex items-center gap-1.5 rounded-full border border-[#A8BDA5]/50 bg-[#EAF1E9] px-2.5 py-1 text-[10px] font-bold text-[#244B3C]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#527C61]" />
+              FINANCIAL OVERVIEW
             </div>
 
-            {/* Transaction count */}
+            <h1 className="text-xl font-bold tracking-tight text-[#242B26] sm:text-2xl">
+              Payments
+            </h1>
 
-            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-              <p className="text-xs font-medium text-slate-400">
+            <p className="mt-0.5 text-xs text-[#68756A] sm:text-sm">
+              Track your rental income and payment activity.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3 self-start rounded-xl border border-[#E6E3D9] bg-white px-3.5 py-2.5 shadow-sm sm:self-auto">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#F7F4EA] text-[#244B3C]">
+              <Receipt size={18} />
+            </div>
+            <div>
+              <p className="text-[10px] font-medium text-[#68756A]">
                 Total Transactions
               </p>
-
-              <p className="mt-1 text-xl font-bold text-slate-900">
+              <p className="text-lg font-bold leading-tight text-[#242B26]">
                 {payments.length}
               </p>
             </div>
           </div>
         </div>
 
-        {/* =====================================================
-            STAT CARDS
-        ====================================================== */}
+        {/* Statistics */}
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+          {stats.map((stat) => {
+            const Icon = stat.icon;
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {/* Collected */}
+            return (
+              <div
+                key={stat.title}
+                className={`relative overflow-hidden rounded-xl border border-[#E6E3D9] border-l-[3px] ${stat.accent} bg-white p-3.5 shadow-sm transition hover:shadow-md sm:p-4`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${stat.iconBg} ${stat.iconColor}`}>
+                    <Icon size={18} />
+                  </div>
 
-          <div className="group relative overflow-hidden rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg">
-            <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-emerald-50 transition group-hover:scale-125" />
-
-            <div className="relative">
-              <div className="flex items-center justify-between">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-xl">
-                  💰
+                  <span className="text-[10px] font-semibold text-[#A0A99F]">
+                    {stat.title === "Total Collected"
+                      ? "PAID"
+                      : stat.title === "Pending Rent"
+                        ? "PENDING"
+                        : stat.title === "Collection Rate"
+                          ? "RATE"
+                          : "ALL"}
+                  </span>
                 </div>
 
-                <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-600">
-                  PAID
-                </span>
+                <p className="mt-3 text-[11px] font-medium text-[#68756A]">
+                  {stat.title}
+                </p>
+
+                <h2 className="mt-0.5 truncate text-lg font-bold tracking-tight text-[#242B26] sm:text-xl">
+                  {stat.value}
+                </h2>
+
+                <p className="mt-1 text-[10px] text-[#68756A]">
+                  {stat.subtitle}
+                </p>
               </div>
-
-              <p className="mt-5 text-sm font-medium text-slate-500">
-                Total Collected
-              </p>
-
-              <h2 className="mt-1 text-2xl font-bold text-slate-900">
-                ₹{formatAmount(totalCollected)}
-              </h2>
-
-              <p className="mt-2 text-xs text-emerald-600">
-                {paidCount} successful payments
-              </p>
-            </div>
-          </div>
-
-          {/* Pending */}
-
-          <div className="group relative overflow-hidden rounded-2xl border border-amber-100 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg">
-            <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-amber-50 transition group-hover:scale-125" />
-
-            <div className="relative">
-              <div className="flex items-center justify-between">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-xl">
-                  ⏳
-                </div>
-
-                <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-600">
-                  PENDING
-                </span>
-              </div>
-
-              <p className="mt-5 text-sm font-medium text-slate-500">
-                Pending Rent
-              </p>
-
-              <h2 className="mt-1 text-2xl font-bold text-slate-900">
-                ₹{formatAmount(totalPending)}
-              </h2>
-
-              <p className="mt-2 text-xs text-amber-600">
-                {pendingCount} pending payments
-              </p>
-            </div>
-          </div>
-
-          {/* Payment count */}
-
-          <div className="group relative overflow-hidden rounded-2xl border border-blue-100 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg">
-            <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-blue-50 transition group-hover:scale-125" />
-
-            <div className="relative">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-xl">
-                📊
-              </div>
-
-              <p className="mt-5 text-sm font-medium text-slate-500">
-                Total Payments
-              </p>
-
-              <h2 className="mt-1 text-2xl font-bold text-slate-900">
-                {payments.length}
-              </h2>
-
-              <p className="mt-2 text-xs text-blue-600">
-                All recorded transactions
-              </p>
-            </div>
-          </div>
-
-          {/* Success rate */}
-
-          <div className="group relative overflow-hidden rounded-2xl border border-violet-100 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg">
-            <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-violet-50 transition group-hover:scale-125" />
-
-            <div className="relative">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-50 text-xl">
-                ✓
-              </div>
-
-              <p className="mt-5 text-sm font-medium text-slate-500">
-                Collection Rate
-              </p>
-
-              <h2 className="mt-1 text-2xl font-bold text-slate-900">
-                {payments.length
-                  ? Math.round((paidCount / payments.length) * 100)
-                  : 0}
-                %
-              </h2>
-
-              <p className="mt-2 text-xs text-violet-600">
-                Payment success rate
-              </p>
-            </div>
-          </div>
+            );
+          })}
         </div>
 
-        {/* =====================================================
-            PAYMENT LIST
-        ====================================================== */}
+        {/* Payment History */}
+        <div className="mt-4 overflow-hidden rounded-xl border border-[#E6E3D9] bg-white shadow-sm">
 
-        <div className="mt-6 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
           {/* Section Header */}
-
-          <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <div className="flex items-center justify-between gap-3 border-b border-[#E6E3D9] px-4 py-3">
             <div>
-              <h2 className="text-lg font-bold text-slate-900">
+              <h2 className="text-sm font-bold text-[#242B26]">
                 Payment History
               </h2>
-
-              <p className="mt-1 text-xs text-slate-400">
+              <p className="mt-0.5 text-[10px] text-[#68756A]">
                 Recent rental payment records
               </p>
             </div>
 
-            <div className="inline-flex w-fit items-center gap-2 rounded-full bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-500">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-[#EAF1E9] px-2.5 py-1.5 text-[10px] font-bold text-[#527C61]">
+              <CheckCircle2 size={12} />
               {paidCount} Paid
             </div>
           </div>
 
-          {/* ===================================================
-              DESKTOP TABLE
-          ==================================================== */}
-
+          {/* Desktop Table */}
           <div className="hidden overflow-x-auto md:block">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/70">
-                  <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Tenant
-                  </th>
-
-                  <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Billing Month
-                  </th>
-
-                  <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Amount
-                  </th>
-
-                  <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Status
-                  </th>
+                <tr className="border-b border-[#E6E3D9] bg-[#F7F8F5]">
+                  {["Tenant", "Billing Month", "Amount", "Status"].map(
+                    (heading) => (
+                      <th
+                        key={heading}
+                        className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[#68756A]"
+                      >
+                        {heading}
+                      </th>
+                    )
+                  )}
                 </tr>
               </thead>
 
               <tbody>
                 {payments.length > 0 ? (
                   payments.map((payment) => {
-                    const tenantName = payment.tenant?.name || "Unknown Tenant";
-
+                    const tenantName =
+                      payment.tenant?.name || "Unknown Tenant";
                     const isPaid = payment.status === "paid";
 
                     return (
                       <tr
                         key={payment._id}
-                        className="group border-b border-slate-100 transition last:border-0 hover:bg-slate-50/70"
+                        className="border-b border-[#F0EFE9] transition last:border-0 hover:bg-[#F7F8F5]"
                       >
-                        {/* Tenant */}
-
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-sm font-bold text-white shadow-sm">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2.5">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#EAF1E9] text-sm font-bold text-[#244B3C]">
                               {getInitial(tenantName)}
                             </div>
 
-                            <div>
-                              <p className="font-semibold text-slate-800">
+                            <div className="min-w-0">
+                              <p className="text-xs font-semibold text-[#242B26]">
                                 {tenantName}
                               </p>
-
                               {payment.tenant?.email && (
-                                <p className="mt-0.5 text-xs text-slate-400">
+                                <p className="mt-0.5 text-[10px] text-[#89938A]">
                                   {payment.tenant.email}
                                 </p>
                               )}
@@ -338,44 +279,32 @@ const Payments = () => {
                           </div>
                         </td>
 
-                        {/* Month */}
-
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-sm">
-                              📅
-                            </div>
-
-                            <span className="text-sm font-medium text-slate-600">
-                              {formatMonth(payment.year, payment.month)}
-                            </span>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2 text-xs font-medium text-[#526056]">
+                            <CalendarDays size={15} className="text-[#A8BDA5]" />
+                            {formatMonth(payment.year, payment.month)}
                           </div>
                         </td>
 
-                        {/* Amount */}
-
-                        <td className="px-6 py-4">
-                          <span className="text-sm font-bold text-slate-900">
+                        <td className="px-4 py-3">
+                          <span className="text-xs font-bold text-[#242B26]">
                             ₹{formatAmount(payment.amount)}
                           </span>
                         </td>
 
-                        {/* Status */}
-
-                        <td className="px-6 py-4">
+                        <td className="px-4 py-3">
                           <span
-                            className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold ${
+                            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold ${
                               isPaid
-                                ? "bg-emerald-50 text-emerald-700"
-                                : "bg-amber-50 text-amber-700"
+                                ? "bg-[#EAF1E9] text-[#527C61]"
+                                : "bg-[#F7F0E2] text-[#A47735]"
                             }`}
                           >
                             <span
                               className={`h-1.5 w-1.5 rounded-full ${
-                                isPaid ? "bg-emerald-500" : "bg-amber-500"
+                                isPaid ? "bg-[#527C61]" : "bg-[#D6A45D]"
                               }`}
                             />
-
                             {isPaid ? "Paid" : "Pending"}
                           </span>
                         </td>
@@ -384,16 +313,14 @@ const Payments = () => {
                   })
                 ) : (
                   <tr>
-                    <td colSpan="4" className="px-6 py-16 text-center">
-                      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-2xl">
-                        💳
+                    <td colSpan="4" className="px-4 py-12 text-center">
+                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[#F7F4EA] text-[#527C61]">
+                        <CreditCard size={22} />
                       </div>
-
-                      <h3 className="mt-4 font-bold text-slate-800">
+                      <h3 className="mt-3 text-sm font-bold text-[#242B26]">
                         No payments yet
                       </h3>
-
-                      <p className="mt-1 text-sm text-slate-400">
+                      <p className="mt-1 text-xs text-[#89938A]">
                         Payment records will appear here.
                       </p>
                     </td>
@@ -403,37 +330,28 @@ const Payments = () => {
             </table>
           </div>
 
-          {/* ===================================================
-              MOBILE CARDS
-          ==================================================== */}
-
-          <div className="divide-y divide-slate-100 md:hidden">
+          {/* Mobile Cards */}
+          <div className="divide-y divide-[#F0EFE9] md:hidden">
             {payments.length > 0 ? (
               payments.map((payment) => {
-                const tenantName = payment.tenant?.name || "Unknown Tenant";
-
+                const tenantName =
+                  payment.tenant?.name || "Unknown Tenant";
                 const isPaid = payment.status === "paid";
 
                 return (
-                  <div
-                    key={payment._id}
-                    className="p-4 transition active:bg-slate-50"
-                  >
-                    {/* Top */}
-
+                  <div key={payment._id} className="p-3.5">
                     <div className="flex items-center justify-between gap-3">
-                      <div className="flex min-w-0 items-center gap-3">
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-sm font-bold text-white">
+                      <div className="flex min-w-0 items-center gap-2.5">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#EAF1E9] text-sm font-bold text-[#244B3C]">
                           {getInitial(tenantName)}
                         </div>
 
                         <div className="min-w-0">
-                          <p className="truncate font-semibold text-slate-800">
+                          <p className="truncate text-xs font-semibold text-[#242B26]">
                             {tenantName}
                           </p>
-
                           {payment.tenant?.email && (
-                            <p className="truncate text-xs text-slate-400">
+                            <p className="truncate text-[10px] text-[#89938A]">
                               {payment.tenant.email}
                             </p>
                           )}
@@ -441,36 +359,34 @@ const Payments = () => {
                       </div>
 
                       <span
-                        className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${
+                        className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold ${
                           isPaid
-                            ? "bg-emerald-50 text-emerald-700"
-                            : "bg-amber-50 text-amber-700"
+                            ? "bg-[#EAF1E9] text-[#527C61]"
+                            : "bg-[#F7F0E2] text-[#A47735]"
                         }`}
                       >
                         {isPaid ? "Paid" : "Pending"}
                       </span>
                     </div>
 
-                    {/* Details */}
-
-                    <div className="mt-4 grid grid-cols-2 gap-3 rounded-2xl bg-slate-50 p-3">
+                    <div className="mt-3 grid grid-cols-2 gap-2 rounded-lg bg-[#F7F8F5] p-3">
                       <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-[#89938A]">
                           Billing Month
                         </p>
-
-                        <p className="mt-1 text-sm font-semibold text-slate-700">
+                        <p className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-[#526056]">
+                          <CalendarDays size={13} className="text-[#527C61]" />
                           {formatMonth(payment.year, payment.month)}
                         </p>
                       </div>
 
                       <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-[#89938A]">
                           Amount
                         </p>
-
-                        <p className="mt-1 text-sm font-bold text-slate-900">
-                          ₹{formatAmount(payment.amount)}
+                        <p className="mt-1 flex items-center gap-1 text-xs font-bold text-[#242B26]">
+                          <IndianRupee size={13} />
+                          {formatAmount(payment.amount)}
                         </p>
                       </div>
                     </div>
@@ -478,16 +394,14 @@ const Payments = () => {
                 );
               })
             ) : (
-              <div className="px-6 py-16 text-center">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-2xl">
-                  💳
+              <div className="px-4 py-12 text-center">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[#F7F4EA] text-[#527C61]">
+                  <CreditCard size={22} />
                 </div>
-
-                <h3 className="mt-4 font-bold text-slate-800">
+                <h3 className="mt-3 text-sm font-bold text-[#242B26]">
                   No payments yet
                 </h3>
-
-                <p className="mt-1 text-sm text-slate-400">
+                <p className="mt-1 text-xs text-[#89938A]">
                   Payment records will appear here.
                 </p>
               </div>

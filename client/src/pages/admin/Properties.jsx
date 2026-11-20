@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import api from "../../api/axios.js";
 
@@ -29,7 +30,6 @@ const Properties = () => {
 
     try {
       await api.delete(`/property/${id}`);
-
       setProperties((prev) => prev.filter((item) => item._id !== id));
     } catch (error) {
       console.error(error);
@@ -37,31 +37,67 @@ const Properties = () => {
     }
   };
 
-  /* ---------------- LOADING ---------------- */
+  const availableCount = properties.filter(
+    (p) => p.status === "available",
+  ).length;
+
+  const rentedCount = properties.filter(
+    (p) => p.status !== "available",
+  ).length;
+
+  const averageRent = properties.length
+    ? Math.round(
+        properties.reduce((sum, p) => sum + Number(p.rent || 0), 0) /
+          properties.length,
+      )
+    : 0;
+
+  const getStatusStyle = (status) =>
+    status === "available"
+      ? "bg-[#EAF2E9] text-[#3F7050]"
+      : "bg-[#F8F0E3] text-[#A47735]";
+
+  const Avatar = ({ name, fallback, tenant = false }) => (
+    <div
+      className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${
+        tenant
+          ? "bg-[#EAF2E9] text-[#527C61]"
+          : "bg-[#E8EEE8] text-[#244B3C]"
+      }`}
+    >
+      {name?.charAt(0)?.toUpperCase() || fallback}
+    </div>
+  );
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
-        <div className="max-w-7xl mx-auto space-y-6">
-          {/* Header Skeleton */}
-          <div className="animate-pulse">
-            <div className="h-8 w-48 bg-slate-200 rounded-lg" />
-            <div className="h-4 w-72 bg-slate-200 rounded mt-3" />
+      <div className="bg-[#F7F8F5] p-3 sm:p-4 lg:p-5">
+        <div className="max-w-7xl mx-auto space-y-4 animate-pulse">
+          <div>
+            <div className="h-6 w-40 bg-[#E6E3D9] rounded-md" />
+            <div className="h-3 w-64 bg-[#E6E3D9] rounded mt-2" />
           </div>
 
-          {/* Cards Skeleton */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {[1, 2, 3, 4].map((item) => (
+              <div
+                key={item}
+                className="h-20 bg-white border border-[#E6E3D9] rounded-xl"
+              />
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
             {[1, 2, 3].map((item) => (
               <div
                 key={item}
-                className="bg-white rounded-2xl border border-slate-200 overflow-hidden"
+                className="bg-white border border-[#E6E3D9] rounded-xl overflow-hidden"
               >
-                <div className="h-48 bg-slate-200 animate-pulse" />
-
-                <div className="p-5 space-y-4">
-                  <div className="h-5 bg-slate-200 rounded w-3/4" />
-                  <div className="h-4 bg-slate-200 rounded w-1/2" />
-                  <div className="h-10 bg-slate-200 rounded" />
+                <div className="h-32 bg-[#E6E3D9]" />
+                <div className="p-4 space-y-3">
+                  <div className="h-4 w-3/4 bg-[#E6E3D9] rounded" />
+                  <div className="h-3 w-1/2 bg-[#E6E3D9] rounded" />
+                  <div className="h-8 bg-[#E6E3D9] rounded" />
                 </div>
               </div>
             ))}
@@ -71,265 +107,205 @@ const Properties = () => {
     );
   }
 
-  /* ---------------- PAGE ---------------- */
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* ================= HEADER ================= */}
-
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 p-6 sm:p-8 shadow-xl shadow-blue-100">
-          {/* Decorative circles */}
-          <div className="absolute -right-10 -top-16 w-48 h-48 bg-white/10 rounded-full" />
-          <div className="absolute right-20 -bottom-20 w-40 h-40 bg-white/10 rounded-full" />
-
-          <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-11 h-11 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center text-2xl">
-                  🏠
-                </div>
-
-                <span className="text-blue-100 text-sm font-medium">
-                  Property Management
-                </span>
+    <div className="bg-[#F7F8F5] p-3 sm:p-4 lg:p-5">
+      <div className="max-w-7xl mx-auto space-y-4">
+        {/* HEADER */}
+        <div className="bg-[#244B3C] rounded-xl px-4 py-4 sm:px-5 sm:py-5 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 text-[#C6D8C8] text-xs font-medium mb-1">
+                <span>⌂</span>
+                <span>Property Management</span>
               </div>
 
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
+              <h1 className="text-xl sm:text-2xl font-bold text-white">
                 Properties
               </h1>
 
-              <p className="text-blue-100 mt-2 text-sm sm:text-base">
-                Manage and monitor all properties in your rental system.
+              <p className="text-xs sm:text-sm text-[#D6E2D7] mt-1">
+                Manage and monitor rental properties.
               </p>
             </div>
 
-            {/* Property Count */}
-            <div className="self-start sm:self-auto bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl px-5 py-4 text-white min-w-[130px]">
-              <p className="text-xs text-blue-100">Total Properties</p>
-
-              <p className="text-2xl font-bold mt-1">{properties.length}</p>
+            <div className="shrink-0 bg-white/10 border border-white/15 rounded-lg px-3 py-2.5 text-right">
+              <p className="text-[10px] sm:text-xs text-[#D6E2D7]">
+                Total Properties
+              </p>
+              <p className="text-xl font-bold text-white">
+                {properties.length}
+              </p>
             </div>
           </div>
         </div>
 
-        {/* ================= SUMMARY ================= */}
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm hover:shadow-md transition">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs sm:text-sm text-slate-500">Total</p>
-
-                <p className="text-xl sm:text-2xl font-bold text-slate-800 mt-1">
-                  {properties.length}
-                </p>
-              </div>
-
-              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                🏠
-              </div>
-            </div>
+        {/* SUMMARY CARDS */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="bg-white border border-[#E6E3D9] rounded-xl p-3 shadow-sm">
+            <p className="text-xs text-[#68756A]">Total Properties</p>
+            <p className="text-xl font-bold text-[#244B3C] mt-1">
+              {properties.length}
+            </p>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm hover:shadow-md transition">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs sm:text-sm text-slate-500">Available</p>
-
-                <p className="text-xl sm:text-2xl font-bold text-emerald-600 mt-1">
-                  {properties.filter((p) => p.status === "available").length}
-                </p>
-              </div>
-
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                ✓
-              </div>
-            </div>
+          <div className="bg-white border border-[#E6E3D9] rounded-xl p-3 shadow-sm">
+            <p className="text-xs text-[#68756A]">Available</p>
+            <p className="text-xl font-bold text-[#527C61] mt-1">
+              {availableCount}
+            </p>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm hover:shadow-md transition">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs sm:text-sm text-slate-500">Rented</p>
-
-                <p className="text-xl sm:text-2xl font-bold text-amber-600 mt-1">
-                  {properties.filter((p) => p.status !== "available").length}
-                </p>
-              </div>
-
-              <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                🔑
-              </div>
-            </div>
+          <div className="bg-white border border-[#E6E3D9] rounded-xl p-3 shadow-sm">
+            <p className="text-xs text-[#68756A]">Rented</p>
+            <p className="text-xl font-bold text-[#B18442] mt-1">
+              {rentedCount}
+            </p>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm hover:shadow-md transition">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs sm:text-sm text-slate-500">Avg. Rent</p>
-
-                <p className="text-xl sm:text-2xl font-bold text-violet-600 mt-1">
-                  ₹
-                  {properties.length
-                    ? Math.round(
-                        properties.reduce(
-                          (sum, p) => sum + Number(p.rent || 0),
-                          0,
-                        ) / properties.length,
-                      )
-                    : 0}
-                </p>
-              </div>
-
-              <div className="w-10 h-10 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center">
-                ₹
-              </div>
-            </div>
+          <div className="bg-white border border-[#E6E3D9] rounded-xl p-3 shadow-sm">
+            <p className="text-xs text-[#68756A]">Average Rent</p>
+            <p className="text-xl font-bold text-[#244B3C] mt-1">
+              ₹{averageRent.toLocaleString("en-IN")}
+            </p>
           </div>
         </div>
 
-        {/* ================= EMPTY STATE ================= */}
-
+        {/* EMPTY STATE */}
         {properties.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-3xl p-10 sm:p-16 text-center shadow-sm">
-            <div className="w-20 h-20 mx-auto rounded-3xl bg-blue-50 flex items-center justify-center text-4xl">
+          <div className="bg-white border border-[#E6E3D9] rounded-xl p-8 text-center shadow-sm">
+            <div className="w-14 h-14 mx-auto rounded-xl bg-[#EAF0E8] flex items-center justify-center text-3xl">
               🏠
             </div>
 
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mt-5">
+            <h2 className="text-lg font-bold text-[#242B26] mt-3">
               No properties found
             </h2>
 
-            <p className="text-slate-500 mt-2 max-w-md mx-auto">
+            <p className="text-sm text-[#68756A] mt-1">
               There are currently no properties available in the system.
             </p>
           </div>
         ) : (
           <>
-            {/* ================================================= */}
             {/* MOBILE / TABLET CARDS */}
-            {/* ================================================= */}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:hidden gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:hidden gap-3">
               {properties.map((property) => (
                 <div
                   key={property._id}
-                  className="group bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                  className="bg-white rounded-xl border border-[#E6E3D9] overflow-hidden shadow-sm"
                 >
-                  {/* Image */}
-                  <div className="relative h-52 bg-gradient-to-br from-blue-100 to-indigo-100 overflow-hidden">
+                  {/* PROPERTY IMAGE */}
+                  <div className="relative h-36 bg-[#EAF0E8] overflow-hidden">
                     {property.image ? (
                       <img
                         src={property.image}
                         alt={property.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                        className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-6xl">
+                      <div className="w-full h-full flex items-center justify-center text-4xl">
                         🏠
                       </div>
                     )}
 
-                    {/* Status */}
-                    <div className="absolute top-4 right-4">
-                      <span
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md ${
-                          property.status === "available"
-                            ? "bg-emerald-100/90 text-emerald-700"
-                            : "bg-amber-100/90 text-amber-700"
-                        }`}
-                      >
-                        {property.status || "Unknown"}
-                      </span>
-                    </div>
+                    <span
+                      className={`absolute top-2 right-2 px-2.5 py-1 rounded-full text-[10px] font-semibold capitalize ${getStatusStyle(
+                        property.status,
+                      )}`}
+                    >
+                      {property.status || "Unknown"}
+                    </span>
                   </div>
 
-                  {/* Card Content */}
-                  <div className="p-5">
-                    <div className="flex justify-between items-start gap-3">
-                      <div>
-                        <h2 className="text-lg font-bold text-slate-800 line-clamp-1">
+                  {/* PROPERTY DETAILS */}
+                  <div className="p-3">
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="min-w-0">
+                        <h2 className="text-sm font-bold text-[#242B26] truncate">
                           {property.title}
                         </h2>
 
-                        <p className="text-sm text-slate-500 mt-1">
+                        <p className="text-xs text-[#68756A] mt-1 truncate">
                           📍 {property.city}
                         </p>
                       </div>
 
                       <div className="text-right shrink-0">
-                        <p className="text-lg font-bold text-blue-600">
-                          ₹{property.rent}
+                        <p className="text-base font-bold text-[#244B3C]">
+                          ₹{Number(property.rent || 0).toLocaleString("en-IN")}
                         </p>
-
-                        <p className="text-xs text-slate-400">/ month</p>
+                        <p className="text-[10px] text-[#8A958B]">
+                          / month
+                        </p>
                       </div>
                     </div>
 
-                    {/* Landlord */}
-                    <div className="mt-5 p-3 rounded-2xl bg-slate-50">
-                      <p className="text-xs text-slate-400 uppercase tracking-wide">
+                    {/* LANDLORD */}
+                    <div className="mt-3 p-2.5 rounded-lg bg-[#F7F8F5]">
+                      <p className="text-[10px] text-[#8A958B] uppercase tracking-wide">
                         Landlord
                       </p>
 
-                      <div className="flex items-center gap-3 mt-2">
-                        <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
-                          {property.landlord?.name?.charAt(0)?.toUpperCase() ||
-                            "L"}
-                        </div>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <Avatar
+                          name={property.landlord?.name}
+                          fallback="L"
+                        />
 
                         <div className="min-w-0">
-                          <p className="font-semibold text-sm text-slate-700 truncate">
+                          <p className="text-xs font-semibold text-[#3C493F] truncate">
                             {property.landlord?.name || "N/A"}
                           </p>
-
-                          <p className="text-xs text-slate-400 truncate">
+                          <p className="text-[10px] text-[#8A958B] truncate">
                             {property.landlord?.email || "No email"}
                           </p>
                         </div>
                       </div>
                     </div>
 
-                    {/* Tenant */}
-                    <div className="mt-3 p-3 rounded-2xl bg-slate-50">
-                      <p className="text-xs text-slate-400 uppercase tracking-wide">
+                    {/* TENANT */}
+                    <div className="mt-2 p-2.5 rounded-lg bg-[#F7F8F5]">
+                      <p className="text-[10px] text-[#8A958B] uppercase tracking-wide">
                         Tenant
                       </p>
 
                       {property.tenant ? (
-                        <div className="flex items-center gap-3 mt-2">
-                          <div className="w-9 h-9 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">
-                            {property.tenant.name?.charAt(0)?.toUpperCase() ||
-                              "T"}
-                          </div>
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <Avatar
+                            name={property.tenant.name}
+                            fallback="T"
+                            tenant
+                          />
 
                           <div className="min-w-0">
-                            <p className="font-semibold text-sm text-slate-700 truncate">
+                            <p className="text-xs font-semibold text-[#3C493F] truncate">
                               {property.tenant.name}
                             </p>
-
-                            <p className="text-xs text-slate-400 truncate">
+                            <p className="text-[10px] text-[#8A958B] truncate">
                               {property.tenant.email}
                             </p>
                           </div>
                         </div>
                       ) : (
-                        <p className="text-sm text-slate-400 mt-2">
+                        <p className="text-xs text-[#8A958B] mt-1.5">
                           No tenant assigned
                         </p>
                       )}
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex gap-3 mt-5">
-                      <button className="flex-1 py-2.5 rounded-xl bg-blue-50 text-blue-600 font-semibold text-sm hover:bg-blue-100 transition">
+                    {/* ACTIONS */}
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        type="button"
+                        className="flex-1 py-2 rounded-lg bg-[#EAF0E8] text-[#244B3C] font-semibold text-xs hover:bg-[#DCE8DC] transition"
+                      >
                         View Details
                       </button>
 
                       <button
+                        type="button"
                         onClick={() => handleDelete(property._id)}
-                        className="px-4 py-2.5 rounded-xl bg-red-50 text-red-600 font-semibold text-sm hover:bg-red-100 transition"
+                        className="px-4 py-2 rounded-lg bg-[#FCEEEE] text-[#B94C4C] font-semibold text-xs hover:bg-[#F8DDDD] transition"
                       >
                         Delete
                       </button>
@@ -339,23 +315,19 @@ const Properties = () => {
               ))}
             </div>
 
-            {/* ================================================= */}
             {/* DESKTOP TABLE */}
-            {/* ================================================= */}
-
-            <div className="hidden xl:block bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
-              <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+            <div className="hidden xl:block bg-white border border-[#E6E3D9] rounded-xl shadow-sm overflow-hidden">
+              <div className="px-4 py-3 border-b border-[#EAE9E2] flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-bold text-slate-800">
+                  <h2 className="text-sm font-bold text-[#242B26]">
                     Property Directory
                   </h2>
-
-                  <p className="text-sm text-slate-500 mt-1">
+                  <p className="text-xs text-[#68756A] mt-0.5">
                     All registered rental properties
                   </p>
                 </div>
 
-                <span className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-full text-sm font-semibold">
+                <span className="px-2.5 py-1 rounded-full bg-[#EAF0E8] text-[#244B3C] text-xs font-semibold">
                   {properties.length} Properties
                 </span>
               </div>
@@ -363,156 +335,140 @@ const Properties = () => {
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200">
-                      <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Property
-                      </th>
-
-                      <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Landlord
-                      </th>
-
-                      <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Tenant
-                      </th>
-
-                      <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Rent
-                      </th>
-
-                      <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Status
-                      </th>
-
-                      <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">
-                        Actions
-                      </th>
+                    <tr className="bg-[#F7F8F5] border-b border-[#E6E3D9]">
+                      {[
+                        "Property",
+                        "Landlord",
+                        "Tenant",
+                        "Rent",
+                        "Status",
+                        "Actions",
+                      ].map((heading) => (
+                        <th
+                          key={heading}
+                          className={`px-4 py-3 text-[10px] font-semibold text-[#68756A] uppercase tracking-wider ${
+                            heading === "Actions" ? "text-right" : ""
+                          }`}
+                        >
+                          {heading}
+                        </th>
+                      ))}
                     </tr>
                   </thead>
 
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-[#F0EFE9]">
                     {properties.map((property) => (
                       <tr
                         key={property._id}
-                        className="group hover:bg-blue-50/40 transition"
+                        className="hover:bg-[#F8FAF6] transition"
                       >
-                        {/* Property */}
-                        <td className="px-6 py-5">
-                          <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 rounded-2xl overflow-hidden bg-gradient-to-br from-blue-100 to-indigo-100 shrink-0">
+                        {/* PROPERTY */}
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-11 h-11 rounded-lg overflow-hidden bg-[#EAF0E8] shrink-0">
                               {property.image ? (
                                 <img
                                   src={property.image}
                                   alt={property.title}
-                                  className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                                  className="w-full h-full object-cover"
                                 />
                               ) : (
-                                <div className="w-full h-full flex items-center justify-center text-2xl">
+                                <div className="w-full h-full flex items-center justify-center text-xl">
                                   🏠
                                 </div>
                               )}
                             </div>
 
                             <div className="min-w-0">
-                              <p className="font-bold text-slate-800 truncate max-w-[220px]">
+                              <p className="text-xs font-bold text-[#303B32] truncate max-w-[180px]">
                                 {property.title}
                               </p>
-
-                              <p className="text-sm text-slate-500 mt-1">
+                              <p className="text-[11px] text-[#68756A] mt-1">
                                 📍 {property.city}
                               </p>
                             </div>
                           </div>
                         </td>
 
-                        {/* Landlord */}
-                        <td className="px-6 py-5">
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
-                              {property.landlord?.name
-                                ?.charAt(0)
-                                ?.toUpperCase() || "L"}
-                            </div>
-
-                            <div>
-                              <p className="font-medium text-slate-700">
+                        {/* LANDLORD */}
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <Avatar
+                              name={property.landlord?.name}
+                              fallback="L"
+                            />
+                            <div className="min-w-0">
+                              <p className="text-xs font-medium text-[#3C493F]">
                                 {property.landlord?.name || "N/A"}
                               </p>
-
-                              <p className="text-xs text-slate-400">
+                              <p className="text-[10px] text-[#8A958B] truncate max-w-[150px]">
                                 {property.landlord?.email || ""}
                               </p>
                             </div>
                           </div>
                         </td>
 
-                        {/* Tenant */}
-                        <td className="px-6 py-5">
+                        {/* TENANT */}
+                        <td className="px-4 py-3">
                           {property.tenant ? (
-                            <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">
-                                {property.tenant.name
-                                  ?.charAt(0)
-                                  ?.toUpperCase() || "T"}
-                              </div>
-
-                              <div>
-                                <p className="font-medium text-slate-700">
+                            <div className="flex items-center gap-2">
+                              <Avatar
+                                name={property.tenant.name}
+                                fallback="T"
+                                tenant
+                              />
+                              <div className="min-w-0">
+                                <p className="text-xs font-medium text-[#3C493F]">
                                   {property.tenant.name}
                                 </p>
-
-                                <p className="text-xs text-slate-400">
+                                <p className="text-[10px] text-[#8A958B] truncate max-w-[150px]">
                                   {property.tenant.email}
                                 </p>
                               </div>
                             </div>
                           ) : (
-                            <span className="inline-flex px-3 py-1.5 rounded-full bg-slate-100 text-slate-500 text-xs font-medium">
+                            <span className="inline-flex px-2.5 py-1 rounded-full bg-[#F1F2EF] text-[#7A857B] text-[10px] font-medium">
                               Not Assigned
                             </span>
                           )}
                         </td>
 
-                        {/* Rent */}
-                        <td className="px-6 py-5">
-                          <p className="font-bold text-slate-800">
-                            ₹{property.rent}
+                        {/* RENT */}
+                        <td className="px-4 py-3">
+                          <p className="text-xs font-bold text-[#244B3C]">
+                            ₹{Number(property.rent || 0).toLocaleString("en-IN")}
                           </p>
-
-                          <p className="text-xs text-slate-400">monthly</p>
+                          <p className="text-[10px] text-[#8A958B]">
+                            Monthly
+                          </p>
                         </td>
 
-                        {/* Status */}
-                        <td className="px-6 py-5">
+                        {/* STATUS */}
+                        <td className="px-4 py-3">
                           <span
-                            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold ${
-                              property.status === "available"
-                                ? "bg-emerald-50 text-emerald-700"
-                                : "bg-amber-50 text-amber-700"
-                            }`}
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold capitalize ${getStatusStyle(
+                              property.status,
+                            )}`}
                           >
-                            <span
-                              className={`w-1.5 h-1.5 rounded-full ${
-                                property.status === "available"
-                                  ? "bg-emerald-500"
-                                  : "bg-amber-500"
-                              }`}
-                            />
-
+                            <span className="w-1.5 h-1.5 rounded-full bg-current" />
                             {property.status || "Unknown"}
                           </span>
                         </td>
 
-                        {/* Actions */}
-                        <td className="px-6 py-5">
+                        {/* ACTIONS */}
+                        <td className="px-4 py-3">
                           <div className="flex justify-end gap-2">
-                            <button className="px-3 py-2 rounded-xl bg-blue-50 text-blue-600 text-sm font-semibold hover:bg-blue-100 transition">
+                            <button
+                              type="button"
+                              className="px-3 py-1.5 rounded-lg bg-[#EAF0E8] text-[#244B3C] text-xs font-semibold hover:bg-[#DCE8DC] transition"
+                            >
                               View
                             </button>
 
                             <button
+                              type="button"
                               onClick={() => handleDelete(property._id)}
-                              className="px-3 py-2 rounded-xl bg-red-50 text-red-600 text-sm font-semibold hover:bg-red-100 transition"
+                              className="px-3 py-1.5 rounded-lg bg-[#FCEEEE] text-[#B94C4C] text-xs font-semibold hover:bg-[#F8DDDD] transition"
                             >
                               Delete
                             </button>

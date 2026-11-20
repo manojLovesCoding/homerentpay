@@ -1,16 +1,28 @@
-import React from "react";
+
+import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
 import LandlordSidebar from "../components/landlord/Sidebar";
 
 const LandlordLayout = () => {
-  return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Sidebar */}
-      <LandlordSidebar />
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-      {/* Main content */}
-      <main className="min-h-screen overflow-x-hidden pt-16 md:ml-64 md:pt-0">
-        <Outlet />
+  return (
+    <div className="min-h-screen bg-[#F7F8F5]">
+      <LandlordSidebar
+        collapsed={sidebarCollapsed}
+        onToggle={() => setSidebarCollapsed((current) => !current)}
+      />
+
+      <main
+        className={`min-h-screen min-w-0 overflow-x-hidden pt-14 transition-[margin] duration-300 ease-in-out md:pt-0 ${
+          sidebarCollapsed ? "md:ml-[76px]" : "md:ml-[250px]"
+        }`}
+      >
+        <div className="min-h-screen w-full p-2 sm:p-3 lg:p-4">
+          <div className="mx-auto w-full max-w-[1600px]">
+            <Outlet />
+          </div>
+        </div>
       </main>
     </div>
   );

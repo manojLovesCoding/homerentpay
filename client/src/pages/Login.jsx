@@ -1,5 +1,18 @@
+
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
+import {
+  Mail,
+  LockKeyhole,
+  Eye,
+  EyeOff,
+  Home,
+  KeyRound,
+  ShieldCheck,
+  ArrowRight,
+  CheckCircle2,
+} from "lucide-react";
 import api from "../api/axios.js";
 import { useAuth } from "../context/AuthContext";
 
@@ -18,14 +31,12 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Redirect already authenticated users
   useEffect(() => {
     if (user) {
       navigate(`/${user.role}`, { replace: true });
     }
   }, [user, navigate]);
 
-  // Handle input changes
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
@@ -35,320 +46,416 @@ const Login = () => {
     setError("");
   };
 
-  // Role-based password recovery message
   const getForgotPasswordMessage = () => {
     switch (formData.role) {
       case "tenant":
         return "Please contact your landlord to reset your password.";
-
       case "landlord":
         return "Please contact the administrator to reset your password.";
-
       case "admin":
         return "Please contact the system administrator for password assistance.";
-
       default:
         return "Please contact the administrator for password assistance.";
     }
   };
 
-  // Handle login
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    if (!formData.email || !formData.password) {
-      setError("Please enter your email and password.");
+    if (!formData.email.trim() || !formData.password) {
+      const message = "Please enter your email and password.";
+      setError(message);
+      toast.error(message);
       return;
     }
 
     try {
       setLoading(true);
 
-      const { data } = await api.post("/auth/login", formData);
+      const { data } = await api.post("/auth/login", {
+        ...formData,
+        email: formData.email.trim().toLowerCase(),
+      });
 
       login(data);
 
-      alert(data.message);
+      toast.success(data.message || "Login successful!");
 
       navigate(`/${data.user.role}`, { replace: true });
     } catch (err) {
-      setError(
+      const message =
         err.response?.data?.message ||
-          "Login failed. Please check your credentials and try again.",
-      );
+        "Login failed. Please check your credentials and try again.";
+
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
   };
 
+  const roleOptions = [
+    {
+      value: "tenant",
+      title: "Tenant",
+      description: "Find your next home",
+      icon: Home,
+    },
+    {
+      value: "landlord",
+      title: "Landlord",
+      description: "Manage your property",
+      icon: KeyRound,
+    },
+    {
+      value: "admin",
+      title: "Admin",
+      description: "Platform access",
+      icon: ShieldCheck,
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-slate-100 px-4 py-10 sm:px-6">
-      {/* Main Container */}
-      <div className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-2xl flex-col justify-center">
-        {/* Brand */}
-        <div className="mb-8 text-center">
-          <Link to="/" className="inline-flex items-center gap-3">
-            <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl bg-white p-1 shadow-md">
+    <main className="relative min-h-screen overflow-hidden bg-[#F7F4EA] px-3 py-5 text-[#242B26] sm:px-5 sm:py-7">
+      {/* Background accents */}
+      <div className="pointer-events-none absolute -left-32 -top-32 h-72 w-72 rounded-full bg-[#A8BDA5]/30 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-32 -right-24 h-80 w-80 rounded-full bg-[#D6A45D]/15 blur-3xl" />
+
+      <div className="relative mx-auto flex min-h-[calc(100vh-2.5rem)] w-full max-w-5xl items-center justify-center">
+        <div className="grid w-full overflow-hidden rounded-2xl border border-[#E6E3D9] bg-white shadow-xl shadow-[#244B3C]/10 lg:grid-cols-[1fr_0.95fr]">
+
+          {/* Welcome panel */}
+          <section className="relative hidden min-h-[620px] flex-col justify-between overflow-hidden bg-[#244B3C] p-8 text-white lg:flex xl:p-10">
+            <div
+              className="absolute inset-0 bg-cover bg-center opacity-30"
+              style={{
+                backgroundImage:
+                  "linear-gradient(145deg, rgba(25,58,46,.96), rgba(36,75,60,.58)), url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1400&q=85')",
+              }}
+            />
+
+            <div className="absolute -right-24 top-24 h-72 w-72 rounded-full border border-white/15" />
+            <div className="absolute -right-10 top-40 h-48 w-48 rounded-full border border-white/15" />
+            <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-[#527C61]/40 blur-2xl" />
+
+            {/* Brand */}
+            <Link to="/" className="relative z-10 inline-flex w-fit items-center gap-3">
               <img
                 src="/logo.jpg"
-                alt="HomeBridge Logo"
-                className="h-full w-full object-contain"
+                alt="HomeBridge"
+                className="h-12 w-16 object-contain"
               />
-            </div>
 
-            <div className="text-left">
-              <p className="text-2xl font-extrabold tracking-tight text-slate-900">
-                HomeBridge
+              <span>
+                <span className="block text-xl font-extrabold tracking-tight">
+                  HomeBridge
+                </span>
+                <span className="mt-0.5 block text-[9px] font-semibold uppercase tracking-[0.2em] text-[#D6A45D]">
+                  Find Your Space. Make It Home.
+                </span>
+              </span>
+            </Link>
+
+            {/* Welcome content */}
+            <div className="relative z-10 max-w-lg pb-6">
+              <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#E8D4AE] backdrop-blur">
+                <span className="h-2 w-2 rounded-full bg-[#D6A45D]" />
+                A better way to find home
+              </span>
+
+              <h1 className="text-4xl font-bold leading-[1.15] tracking-tight xl:text-5xl">
+                Welcome back to a place that feels like home.
+              </h1>
+
+              <p className="mt-5 max-w-md text-sm leading-7 text-white/75">
+                Connect with the right people, manage your rental journey,
+                and make every step simpler with HomeBridge.
               </p>
 
-              <p className="mt-1 text-xs font-medium text-slate-500">
-                Find Your Space. Make It Home.
-              </p>
-            </div>
-          </Link>
-        </div>
+              <div className="mt-8 flex items-center gap-3">
+                <div className="flex -space-x-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#244B3C] bg-[#A8BDA5] text-xs font-bold text-[#244B3C]">
+                    H
+                  </div>
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#244B3C] bg-[#D6A45D] text-xs font-bold text-[#244B3C]">
+                    B
+                  </div>
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#244B3C] bg-[#F7F4EA] text-xs font-bold text-[#244B3C]">
+                    +
+                  </div>
+                </div>
 
-        {/* Login Card */}
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/60 sm:p-8 md:p-10">
-          {/* Heading */}
-          <div className="mb-8">
-            <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-blue-700">
-              Welcome Back
+                <p className="text-xs leading-5 text-white/75">
+                  One simple bridge between
+                  <br />
+                  tenants and landlords.
+                </p>
+              </div>
+            </div>
+
+            <p className="relative z-10 text-[10px] text-white/55">
+              © {new Date().getFullYear()} HomeBridge. All rights reserved.
             </p>
+          </section>
 
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-              Sign in to your account
-            </h1>
+          {/* Login form */}
+          <section className="flex items-center justify-center px-5 py-7 sm:px-8 lg:px-9 xl:px-12">
+            <div className="w-full max-w-md">
 
-            <p className="mt-2 text-sm leading-6 text-slate-500 sm:text-base">
-              Welcome back! Please enter your details to continue.
-            </p>
-          </div>
+              {/* Mobile brand */}
+              <div className="mb-6 flex items-center justify-between lg:hidden">
+                <Link to="/" className="inline-flex items-center gap-2">
+                  <img
+                    src="/logo.jpg"
+                    alt="HomeBridge"
+                    className="h-11 w-14 object-contain"
+                  />
 
-          {/* Error Message */}
-          {error && (
-            <div className="mb-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-              <span className="mt-0.5">⚠️</span>
-              <p>{error}</p>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email */}
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Email Address
-              </label>
-
-              <div className="relative">
-                <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                  ✉
-                </span>
-
-                <input
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="you@example.com"
-                  type="email"
-                  autoComplete="email"
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-600/10"
-                />
-              </div>
-            </div>
-
-            {/* Password */}
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Password
-              </label>
-
-              <div className="relative">
-                <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                  🔒
-                </span>
-
-                <input
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="Enter your password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete="current-password"
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-16 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-600/10"
-                />
-
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-slate-400 transition hover:text-blue-700"
-                >
-                  {showPassword ? "Hide" : "Show"}
-                </button>
-              </div>
-            </div>
-
-            {/* Remember Me + Forgot Password */}
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <label className="flex cursor-pointer items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 text-blue-700 focus:ring-blue-600"
-                />
-
-                <span className="text-sm text-slate-600">Remember me</span>
-              </label>
-
-              {/* Role-based password recovery */}
-              <button
-                type="button"
-                onClick={() => {
-                  alert(getForgotPasswordMessage());
-                }}
-                className="text-sm font-semibold text-blue-700 transition hover:text-blue-800"
-              >
-                Forgot password?
-              </button>
-            </div>
-
-            {/* Role Selection */}
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Sign in as
-              </label>
-
-              <div className="grid grid-cols-3 gap-3">
-                {/* Tenant */}
-                <button
-                  type="button"
-                  onClick={() =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      role: "tenant",
-                    }))
-                  }
-                  className={`rounded-xl border p-3 text-center transition ${
-                    formData.role === "tenant"
-                      ? "border-blue-600 bg-blue-50 ring-2 ring-blue-600/10"
-                      : "border-slate-200 bg-slate-50 hover:border-slate-300"
-                  }`}
-                >
-                  <div
-                    className={`mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-lg ${
-                      formData.role === "tenant"
-                        ? "bg-blue-700 text-white"
-                        : "bg-white text-slate-500"
-                    }`}
-                  >
-                    🏠
-                  </div>
-
-                  <p className="text-sm font-bold text-slate-900">Tenant</p>
-                </button>
-
-                {/* Landlord */}
-                <button
-                  type="button"
-                  onClick={() =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      role: "landlord",
-                    }))
-                  }
-                  className={`rounded-xl border p-3 text-center transition ${
-                    formData.role === "landlord"
-                      ? "border-blue-600 bg-blue-50 ring-2 ring-blue-600/10"
-                      : "border-slate-200 bg-slate-50 hover:border-slate-300"
-                  }`}
-                >
-                  <div
-                    className={`mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-lg ${
-                      formData.role === "landlord"
-                        ? "bg-blue-700 text-white"
-                        : "bg-white text-slate-500"
-                    }`}
-                  >
-                    🏢
-                  </div>
-
-                  <p className="text-sm font-bold text-slate-900">Landlord</p>
-                </button>
-
-                {/* Admin */}
-                <button
-                  type="button"
-                  onClick={() =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      role: "admin",
-                    }))
-                  }
-                  className={`rounded-xl border p-3 text-center transition ${
-                    formData.role === "admin"
-                      ? "border-blue-600 bg-blue-50 ring-2 ring-blue-600/10"
-                      : "border-slate-200 bg-slate-50 hover:border-slate-300"
-                  }`}
-                >
-                  <div
-                    className={`mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-lg ${
-                      formData.role === "admin"
-                        ? "bg-blue-700 text-white"
-                        : "bg-white text-slate-500"
-                    }`}
-                  >
-                    🛡️
-                  </div>
-
-                  <p className="text-sm font-bold text-slate-900">Admin</p>
-                </button>
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="group flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-blue-800 to-blue-600 py-3.5 font-semibold text-white shadow-lg shadow-blue-700/20 transition hover:-translate-y-0.5 hover:from-blue-700 hover:to-blue-500 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
-            >
-              {loading ? (
-                <>
-                  <span className="mr-3 h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                  Signing in...
-                </>
-              ) : (
-                <>
-                  Sign In to HomeBridge
-                  <span className="ml-2 transition-transform group-hover:translate-x-1">
-                    →
+                  <span className="text-lg font-extrabold text-[#244B3C]">
+                    HomeBridge
                   </span>
-                </>
+                </Link>
+
+                <span className="rounded-full bg-[#EEF2EA] px-3 py-1.5 text-[10px] font-semibold text-[#527C61]">
+                  Welcome back
+                </span>
+              </div>
+
+              {/* Heading */}
+              <div className="mb-6">
+                <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#527C61]">
+                  Your HomeBridge account
+                </p>
+
+                <h2 className="text-3xl font-extrabold tracking-tight text-[#242B26]">
+                  Sign in
+                </h2>
+
+                <p className="mt-2 text-xs leading-5 text-[#68756A] sm:text-sm">
+                  Enter your account details to continue where you left off.
+                </p>
+              </div>
+
+              {/* Error */}
+              {error && (
+                <div
+                  role="alert"
+                  className="mb-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700"
+                >
+                  <span className="font-bold">!</span>
+                  <p>{error}</p>
+                </div>
               )}
-            </button>
-          </form>
 
-          {/* Register Link */}
-          <div className="mt-7 border-t border-slate-100 pt-6 text-center">
-            <p className="text-sm text-slate-500">
-              Don't have an account?{" "}
-              <Link
-                to="/register"
-                className="font-semibold text-blue-700 transition hover:text-blue-800"
-              >
-                Create an account
-              </Link>
-            </p>
-          </div>
+              <form onSubmit={handleSubmit} className="space-y-4">
+
+                {/* Email */}
+                <div>
+                  <label
+                    htmlFor="login-email"
+                    className="mb-1.5 block text-xs font-semibold text-[#34443A]"
+                  >
+                    Email address
+                  </label>
+
+                  <div className="relative">
+                    <Mail
+                      size={16}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-[#899489]"
+                    />
+
+                    <input
+                      id="login-email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="you@example.com"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      className="w-full rounded-lg border border-[#E6E3D9] bg-[#FAFAF6] py-2.5 pl-10 pr-3 text-sm text-[#242B26] outline-none transition placeholder:text-[#899489] focus:border-[#527C61] focus:bg-white focus:ring-2 focus:ring-[#A8BDA5]/25"
+                    />
+                  </div>
+                </div>
+
+                {/* Password */}
+                <div>
+                  <label
+                    htmlFor="login-password"
+                    className="mb-1.5 block text-xs font-semibold text-[#34443A]"
+                  >
+                    Password
+                  </label>
+
+                  <div className="relative">
+                    <LockKeyhole
+                      size={16}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-[#899489]"
+                    />
+
+                    <input
+                      id="login-password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      placeholder="Enter your password"
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="current-password"
+                      required
+                      className="w-full rounded-lg border border-[#E6E3D9] bg-[#FAFAF6] py-2.5 pl-10 pr-11 text-sm text-[#242B26] outline-none transition placeholder:text-[#899489] focus:border-[#527C61] focus:bg-white focus:ring-2 focus:ring-[#A8BDA5]/25"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowPassword((value) => !value)
+                      }
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#527C61] transition hover:text-[#193A2E]"
+                    >
+                      {showPassword ? (
+                        <EyeOff size={16} />
+                      ) : (
+                        <Eye size={16} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Remember and forgot password */}
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <label className="flex cursor-pointer items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="h-3.5 w-3.5 rounded accent-[#244B3C] focus:ring-[#527C61]"
+                    />
+
+                    <span className="text-xs text-[#68756A]">
+                      Remember me
+                    </span>
+                  </label>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      toast(getForgotPasswordMessage(), {
+                        icon: "🔐",
+                        duration: 4000,
+                      })
+                    }
+                    className="text-xs font-semibold text-[#527C61] transition hover:text-[#193A2E]"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+
+                {/* Role selection */}
+                <div>
+                  <p className="mb-2 text-xs font-semibold text-[#34443A]">
+                    Sign in as
+                  </p>
+
+                  <div className="grid grid-cols-3 gap-2">
+                    {roleOptions.map((option) => {
+                      const selected = formData.role === option.value;
+                      const Icon = option.icon;
+
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          aria-pressed={selected}
+                          onClick={() =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              role: option.value,
+                            }))
+                          }
+                          className={`relative rounded-lg border px-2 py-3 text-center transition ${
+                            selected
+                              ? "border-[#527C61] bg-[#F1F4EC] ring-1 ring-[#A8BDA5]/50"
+                              : "border-[#E6E3D9] bg-white hover:border-[#A8BDA5] hover:bg-[#FAFBF8]"
+                          }`}
+                        >
+                          {selected && (
+                            <CheckCircle2
+                              size={13}
+                              className="absolute right-1.5 top-1.5 text-[#527C61]"
+                            />
+                          )}
+
+                          <span
+                            className={`mx-auto mb-1.5 flex h-9 w-9 items-center justify-center rounded-lg ${
+                              selected
+                                ? "bg-[#244B3C] text-white"
+                                : "bg-[#F1F4EC] text-[#527C61]"
+                            }`}
+                          >
+                            <Icon size={17} />
+                          </span>
+
+                          <span className="block text-xs font-bold text-[#34443A]">
+                            {option.title}
+                          </span>
+
+                          <span className="mt-0.5 hidden text-[9px] leading-4 text-[#7B877C] sm:block">
+                            {option.description}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Login button */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="group flex w-full items-center justify-center gap-2 rounded-lg bg-[#244B3C] px-5 py-3 text-sm font-semibold text-white shadow-md shadow-[#244B3C]/15 transition hover:bg-[#193A2E] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {loading ? (
+                    <>
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                      Signing in...
+                    </>
+                  ) : (
+                    <>
+                      Sign in to HomeBridge
+                      <ArrowRight
+                        size={16}
+                        className="transition-transform group-hover:translate-x-1"
+                      />
+                    </>
+                  )}
+                </button>
+              </form>
+
+              {/* Register link */}
+              <div className="mt-6 border-t border-[#ECEDE7] pt-5 text-center">
+                <p className="text-xs text-[#68756A]">
+                  Don't have an account?{" "}
+                  <Link
+                    to="/register"
+                    className="font-bold text-[#244B3C] transition hover:text-[#193A2E]"
+                  >
+                    Create an account
+                  </Link>
+                </p>
+              </div>
+
+              <p className="mt-5 text-center text-[10px] text-[#9AA49A] lg:hidden">
+                © {new Date().getFullYear()} HomeBridge. All rights reserved.
+              </p>
+            </div>
+          </section>
         </div>
-
-        {/* Footer */}
-        <p className="mt-6 text-center text-xs text-slate-400">
-          © {new Date().getFullYear()} HomeBridge. All rights reserved.
-        </p>
       </div>
-    </div>
+    </main>
   );
 };
 

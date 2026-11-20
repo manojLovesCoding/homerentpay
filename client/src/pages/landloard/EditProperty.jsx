@@ -1,5 +1,22 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import toast from "react-hot-toast";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Building2,
+  MapPin,
+  IndianRupee,
+  ImagePlus,
+  Upload,
+  X,
+  CheckCircle2,
+  Lightbulb,
+  Home,
+  Pencil,
+  Save,
+} from "lucide-react";
 import api from "../../api/axios.js";
 
 const EditProperty = () => {
@@ -22,18 +39,18 @@ const EditProperty = () => {
     image: null,
   });
 
-  /* ============================================================
-     FETCH PROPERTY
-  ============================================================ */
-
+  // Fetch property
   useEffect(() => {
     const fetchProperty = async () => {
       try {
         setFetching(true);
+        setNotFound(false);
 
         const res = await api.get("/property");
 
-        const property = res.data.properties?.find((item) => item._id === id);
+        const property = res.data.properties?.find(
+          (item) => item._id === id
+        );
 
         if (!property) {
           setNotFound(true);
@@ -52,6 +69,9 @@ const EditProperty = () => {
       } catch (err) {
         console.error(err);
         setNotFound(true);
+        toast.error(
+          err.response?.data?.message || "Failed to load property"
+        );
       } finally {
         setFetching(false);
       }
@@ -60,10 +80,16 @@ const EditProperty = () => {
     fetchProperty();
   }, [id]);
 
-  /* ============================================================
-     HANDLE INPUT
-  ============================================================ */
+  // Clean up image preview URL
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
 
+  // Handle input changes
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
@@ -71,29 +97,36 @@ const EditProperty = () => {
     }));
   };
 
-  /* ============================================================
-     IMAGE CHANGE
-  ============================================================ */
-
+  // Handle image selection
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
 
     if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select a valid image file.");
+      e.target.value = "";
+      return;
+    }
+
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+    }
 
     setFormData((prev) => ({
       ...prev,
       image: file,
     }));
 
-    const previewUrl = URL.createObjectURL(file);
-    setImagePreview(previewUrl);
+    setImagePreview(URL.createObjectURL(file));
   };
 
-  /* ============================================================
-     REMOVE NEW IMAGE
-  ============================================================ */
-
+  // Remove newly selected image
   const removeNewImage = () => {
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+    }
+
     setFormData((prev) => ({
       ...prev,
       image: null,
@@ -106,15 +139,27 @@ const EditProperty = () => {
     }
   };
 
-  /* ============================================================
-     SUBMIT
-  ============================================================ */
-
+  // Submit updated property
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (Number(formData.rent) <= 0) {
-      alert("Please enter a valid monthly rent.");
+    if (!formData.title.trim()) {
+      toast.error("Please enter a property title.");
+      return;
+    }
+
+    if (!formData.address.trim()) {
+      toast.error("Please enter the property address.");
+      return;
+    }
+
+    if (!formData.city.trim()) {
+      toast.error("Please enter the city.");
+      return;
+    }
+
+    if (!formData.rent || Number(formData.rent) <= 0) {
+      toast.error("Please enter a valid monthly rent.");
       return;
     }
 
@@ -123,9 +168,9 @@ const EditProperty = () => {
     try {
       const data = new FormData();
 
-      data.append("title", formData.title);
-      data.append("address", formData.address);
-      data.append("city", formData.city);
+      data.append("title", formData.title.trim());
+      data.append("address", formData.address.trim());
+      data.append("city", formData.city.trim());
       data.append("rent", formData.rent);
 
       if (formData.image) {
@@ -141,75 +186,73 @@ const EditProperty = () => {
         },
       });
 
-      alert("Property updated successfully");
+      toast.success("Property updated successfully!");
 
       navigate("/landlord/properties");
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to update property");
+      toast.error(
+        err.response?.data?.message || "Failed to update property"
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  /* ============================================================
-     FORMAT CURRENCY
-  ============================================================ */
-
   const formattedRent = formData.rent
     ? Number(formData.rent).toLocaleString("en-IN")
     : "0";
 
-  /* ============================================================
-     LOADING SKELETON
-  ============================================================ */
+  const inputClass =
+    "w-full rounded-lg border border-[#E6E3D9] bg-[#F8F9F6] px-3 py-2.5 text-sm text-[#242B26] outline-none transition placeholder:text-[#A0A99F] focus:border-[#527C61] focus:bg-white disabled:cursor-not-allowed disabled:opacity-60";
 
+  const labelClass =
+    "mb-1.5 block text-xs font-semibold text-[#39483D]";
+
+  // Loading skeleton
   if (fetching) {
     return (
-      <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-8 h-44 animate-pulse rounded-3xl bg-slate-200" />
+      <div className="bg-[#F7F8F5] p-3 sm:p-5">
+        <div className="mx-auto max-w-6xl animate-pulse space-y-4">
+          <div className="h-24 rounded-2xl bg-[#E8EDE7]" />
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <div className="space-y-6 lg:col-span-2">
-              <div className="h-[500px] animate-pulse rounded-3xl bg-slate-200" />
-
-              <div className="h-72 animate-pulse rounded-3xl bg-slate-200" />
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+            <div className="space-y-4 lg:col-span-2">
+              <div className="h-64 rounded-xl bg-white" />
+              <div className="h-48 rounded-xl bg-white" />
             </div>
 
-            <div className="h-96 animate-pulse rounded-3xl bg-slate-200" />
+            <div className="h-72 rounded-xl bg-white" />
           </div>
         </div>
       </div>
     );
   }
 
-  /* ============================================================
-     NOT FOUND
-  ============================================================ */
-
+  // Property not found
   if (notFound) {
     return (
-      <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
-        <div className="mx-auto flex min-h-[70vh] max-w-xl items-center justify-center">
-          <div className="w-full rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-red-50 text-4xl">
-              🏠
+      <div className="bg-[#F7F8F5] p-3 sm:p-5">
+        <div className="mx-auto flex min-h-[55vh] max-w-xl items-center justify-center">
+          <div className="w-full rounded-2xl border border-[#E6E3D9] bg-white p-6 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-[#EAF0E9] text-[#527C61]">
+              <Home size={30} />
             </div>
 
-            <h1 className="mt-5 text-2xl font-bold text-slate-900">
+            <h1 className="mt-4 text-xl font-bold text-[#242B26]">
               Property not found
             </h1>
 
-            <p className="mt-2 text-sm text-slate-500">
-              The property you're trying to edit may have been removed or you
-              don't have access to it.
+            <p className="mt-2 text-xs leading-5 text-[#68756A]">
+              The property you're trying to edit may have been removed
+              or you don't have access to it.
             </p>
 
             <button
               onClick={() => navigate("/landlord/properties")}
-              className="mt-6 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-500"
+              className="mt-5 inline-flex items-center gap-2 rounded-lg bg-[#244B3C] px-5 py-2.5 text-xs font-semibold text-white transition hover:bg-[#193A2E]"
             >
-              ← Back to Properties
+              <ArrowLeft size={14} />
+              Back to Properties
             </button>
           </div>
         </div>
@@ -218,83 +261,70 @@ const EditProperty = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
-      <div className="mx-auto max-w-6xl">
-        {/* =====================================================
-            PAGE HEADER
-        ====================================================== */}
+    <div className="bg-[#F7F8F5] p-3 sm:p-5">
+      <div className="mx-auto max-w-6xl space-y-4">
 
-        <div className="relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-r from-blue-700 via-indigo-700 to-violet-700 p-6 shadow-xl shadow-blue-900/10 sm:p-8">
-          {/* Decorative background */}
-          <div className="absolute -right-20 -top-32 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
-
-          <div className="absolute -bottom-32 -left-20 h-72 w-72 rounded-full bg-indigo-950/20 blur-3xl" />
-
-          <div className="relative">
+        {/* Header */}
+        <div className="flex flex-col justify-between gap-3 rounded-2xl bg-[#244B3C] px-4 py-4 sm:flex-row sm:items-center sm:px-5">
+          <div>
             <button
               type="button"
               onClick={() => navigate("/landlord/properties")}
-              className="mb-5 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm font-medium text-white backdrop-blur transition hover:bg-white/20"
+              className="mb-2 inline-flex items-center gap-1.5 text-xs font-medium text-[#DCE8DC] transition hover:text-white"
             >
-              ← Back to Properties
+              <ArrowLeft size={14} />
+              Back to Properties
             </button>
 
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-medium text-blue-100 backdrop-blur">
-              <span className="h-2 w-2 rounded-full bg-yellow-400" />
-              Editing Property
+            <div className="flex items-center gap-2">
+              <Pencil size={18} className="text-[#D6A45D]" />
+
+              <h1 className="text-xl font-bold text-white sm:text-2xl">
+                Edit Property
+              </h1>
             </div>
 
-            <h1 className="mt-3 text-3xl font-bold text-white sm:text-4xl">
-              Edit Property
-            </h1>
-
-            <p className="mt-2 max-w-2xl text-sm text-blue-100/80 sm:text-base">
-              Update your property information, rental price, address, or
-              listing image.
+            <p className="mt-1 text-xs text-[#DCE8DC]">
+              Update your property details, rent, address, and image.
             </p>
+          </div>
+
+          <div className="hidden items-center gap-2 rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-xs font-medium text-white sm:flex">
+            <span className="h-2 w-2 rounded-full bg-[#D6A45D]" />
+            Editing Listing
           </div>
         </div>
 
-        {/* =====================================================
-            FORM
-        ====================================================== */}
-
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            {/* =================================================
-                LEFT SIDE
-            ================================================== */}
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
 
-            <div className="space-y-6 lg:col-span-2">
-              {/* =================================================
-                  PROPERTY DETAILS
-              ================================================== */}
+            {/* Left section */}
+            <div className="space-y-4 lg:col-span-2">
 
-              <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-                <div className="mb-7 flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-xl">
-                    ✏️
+              {/* Property details */}
+              <div className="rounded-xl border border-[#E6E3D9] bg-white p-4">
+                <div className="mb-4 flex items-center gap-2.5 border-b border-[#F0EEE7] pb-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#EAF0E9] text-[#527C61]">
+                    <Building2 size={19} />
                   </div>
 
                   <div>
-                    <h2 className="text-lg font-bold text-slate-900">
+                    <h2 className="text-sm font-bold text-[#242B26]">
                       Property Details
                     </h2>
 
-                    <p className="text-sm text-slate-500">
-                      Update the basic information about your property.
+                    <p className="text-[11px] text-[#849084]">
+                      Update your property information
                     </p>
                   </div>
                 </div>
 
-                <div className="space-y-5">
+                <div className="space-y-3.5">
+
                   {/* Title */}
                   <div>
-                    <label
-                      htmlFor="title"
-                      className="mb-2 block text-sm font-semibold text-slate-700"
-                    >
-                      Property Title
+                    <label htmlFor="title" className={labelClass}>
+                      Property Title <span className="text-red-500">*</span>
                     </label>
 
                     <input
@@ -305,17 +335,14 @@ const EditProperty = () => {
                       placeholder="e.g. Modern 2BHK Apartment"
                       required
                       disabled={loading}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                      className={inputClass}
                     />
                   </div>
 
                   {/* Address */}
                   <div>
-                    <label
-                      htmlFor="address"
-                      className="mb-2 block text-sm font-semibold text-slate-700"
-                    >
-                      Full Address
+                    <label htmlFor="address" className={labelClass}>
+                      Full Address <span className="text-red-500">*</span>
                     </label>
 
                     <textarea
@@ -324,28 +351,26 @@ const EditProperty = () => {
                       value={formData.address}
                       onChange={handleChange}
                       placeholder="Enter complete property address"
-                      rows={4}
+                      rows={2}
                       required
                       disabled={loading}
-                      className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                      className={`${inputClass} resize-none`}
                     />
                   </div>
 
-                  {/* City + Rent */}
-                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    {/* City */}
+                  {/* City and rent */}
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+
                     <div>
-                      <label
-                        htmlFor="city"
-                        className="mb-2 block text-sm font-semibold text-slate-700"
-                      >
-                        City
+                      <label htmlFor="city" className={labelClass}>
+                        City <span className="text-red-500">*</span>
                       </label>
 
                       <div className="relative">
-                        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2">
-                          📍
-                        </span>
+                        <MapPin
+                          size={15}
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-[#849084]"
+                        />
 
                         <input
                           id="city"
@@ -355,24 +380,21 @@ const EditProperty = () => {
                           placeholder="e.g. Bangalore"
                           required
                           disabled={loading}
-                          className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                          className={`${inputClass} pl-9`}
                         />
                       </div>
                     </div>
 
-                    {/* Rent */}
                     <div>
-                      <label
-                        htmlFor="rent"
-                        className="mb-2 block text-sm font-semibold text-slate-700"
-                      >
-                        Monthly Rent
+                      <label htmlFor="rent" className={labelClass}>
+                        Monthly Rent <span className="text-red-500">*</span>
                       </label>
 
                       <div className="relative">
-                        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">
-                          ₹
-                        </span>
+                        <IndianRupee
+                          size={15}
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-[#849084]"
+                        />
 
                         <input
                           id="rent"
@@ -384,7 +406,7 @@ const EditProperty = () => {
                           placeholder="15000"
                           required
                           disabled={loading}
-                          className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                          className={`${inputClass} pl-9`}
                         />
                       </div>
                     </div>
@@ -392,87 +414,81 @@ const EditProperty = () => {
                 </div>
               </div>
 
-              {/* =================================================
-                  IMAGE
-              ================================================== */}
-
-              <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-                <div className="mb-6 flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-50 text-xl">
-                    📷
+              {/* Property image */}
+              <div className="rounded-xl border border-[#E6E3D9] bg-white p-4">
+                <div className="mb-3 flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#F5EFE3] text-[#A47A3F]">
+                    <ImagePlus size={19} />
                   </div>
 
                   <div>
-                    <h2 className="text-lg font-bold text-slate-900">
+                    <h2 className="text-sm font-bold text-[#242B26]">
                       Property Image
                     </h2>
 
-                    <p className="text-sm text-slate-500">
-                      Keep the current image or upload a new one.
+                    <p className="text-[11px] text-[#849084]">
+                      Keep the current image or upload a new one
                     </p>
                   </div>
                 </div>
 
-                {/* Current / new image */}
                 {(imagePreview || currentImage) && (
-                  <div className="relative mb-5 overflow-hidden rounded-2xl border border-slate-200">
+                  <div className="relative mb-3 overflow-hidden rounded-lg border border-[#E6E3D9]">
                     <img
                       src={imagePreview || currentImage}
                       alt="Property"
-                      className="h-72 w-full object-cover sm:h-96"
+                      className="h-40 w-full object-cover sm:h-48"
                     />
 
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-5 pt-16">
-                      <div className="flex items-end justify-between gap-4">
-                        <div>
-                          <span className="inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
-                            {imagePreview ? "New Image" : "Current Image"}
-                          </span>
-
-                          {imagePreview && (
-                            <p className="mt-2 max-w-[220px] truncate text-xs text-white/70">
-                              {formData.image?.name}
-                            </p>
-                          )}
-                        </div>
+                    <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-gradient-to-t from-black/70 to-transparent p-3 pt-8">
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-white">
+                          {imagePreview ? "New Image" : "Current Image"}
+                        </p>
 
                         {imagePreview && (
-                          <button
-                            type="button"
-                            onClick={removeNewImage}
-                            disabled={loading}
-                            className="shrink-0 rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-red-600"
-                          >
-                            Remove
-                          </button>
+                          <p className="truncate text-[10px] text-white/70">
+                            {formData.image?.name}
+                          </p>
                         )}
                       </div>
+
+                      {imagePreview && (
+                        <button
+                          type="button"
+                          onClick={removeNewImage}
+                          disabled={loading}
+                          className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-white/95 px-3 py-1.5 text-xs font-semibold text-[#B45D50] transition hover:bg-white"
+                        >
+                          <X size={13} />
+                          Remove
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
 
-                {/* Upload */}
                 <label
                   htmlFor="property-image"
-                  className="group flex cursor-pointer items-center gap-4 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-5 transition hover:border-blue-400 hover:bg-blue-50/50"
+                  className="flex cursor-pointer items-center gap-3 rounded-lg border-2 border-dashed border-[#C9D4C8] bg-[#F8F9F6] p-4 transition hover:border-[#527C61] hover:bg-[#F1F5F0]"
                 >
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-xl transition group-hover:scale-105">
-                    📤
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#EAF0E9] text-[#527C61]">
+                    <Upload size={19} />
                   </div>
 
                   <div className="min-w-0">
-                    <p className="font-semibold text-slate-900">
+                    <p className="text-xs font-semibold text-[#39483D]">
                       {imagePreview
-                        ? "Choose a different image"
+                        ? "Choose another image"
                         : "Upload a new image"}
                     </p>
 
-                    <p className="mt-1 text-xs text-slate-500">
-                      JPG, JPEG or PNG • Recommended 1200×800
+                    <p className="mt-1 text-[10px] text-[#929B91]">
+                      PNG, JPG or JPEG
                     </p>
                   </div>
 
-                  <span className="ml-auto hidden rounded-lg bg-white px-3 py-2 text-xs font-semibold text-blue-600 shadow-sm sm:block">
+                  <span className="ml-auto hidden rounded-lg bg-white px-3 py-2 text-[11px] font-semibold text-[#527C61] shadow-sm sm:block">
                     Browse
                   </span>
 
@@ -481,7 +497,7 @@ const EditProperty = () => {
                     ref={fileRef}
                     type="file"
                     onChange={handleFileChange}
-                    accept="image/*"
+                    accept="image/png,image/jpeg,image/jpg"
                     disabled={loading}
                     className="hidden"
                   />
@@ -489,158 +505,139 @@ const EditProperty = () => {
               </div>
             </div>
 
-            {/* =================================================
-                RIGHT SIDE
-            ================================================== */}
+            {/* Right section */}
+            <div className="space-y-4">
 
-            <div className="space-y-6 lg:sticky lg:top-6 lg:self-start">
               {/* Live preview */}
-              <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-                <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-600 p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wider text-blue-100">
-                        Live Preview
-                      </p>
+              <div className="overflow-hidden rounded-xl border border-[#E6E3D9] bg-white">
+                <div className="bg-[#244B3C] px-4 py-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[#D6A45D]">
+                    Live Preview
+                  </p>
 
-                      <h2 className="mt-2 line-clamp-2 text-xl font-bold text-white">
-                        {formData.title || "Your Property"}
-                      </h2>
-                    </div>
+                  <h2 className="mt-1 line-clamp-2 text-base font-bold text-white">
+                    {formData.title || "Your Property"}
+                  </h2>
 
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-xl backdrop-blur">
-                      🏠
-                    </div>
-                  </div>
+                  <p className="mt-0.5 text-xs text-[#DCE8DC]">
+                    {formData.city || "City"}
+                  </p>
                 </div>
 
-                {/* Preview image */}
-                <div className="h-44 overflow-hidden bg-slate-100">
+                <div className="h-28 overflow-hidden bg-[#E8EDE7]">
                   {imagePreview || currentImage ? (
                     <img
                       src={imagePreview || currentImage}
-                      alt="Preview"
+                      alt="Property preview"
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-full items-center justify-center text-5xl">
-                      🏠
+                    <div className="flex h-full items-center justify-center text-[#A8BDA5]">
+                      <Home size={40} strokeWidth={1.3} />
                     </div>
                   )}
                 </div>
 
-                <div className="p-5">
-                  {/* Location */}
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100">
-                      📍
-                    </div>
+                <div className="space-y-3 p-4">
+                  <div className="flex items-start gap-2">
+                    <MapPin
+                      size={15}
+                      className="mt-0.5 shrink-0 text-[#527C61]"
+                    />
 
                     <div className="min-w-0">
-                      <p className="text-xs text-slate-400">Location</p>
-
-                      <p className="mt-0.5 font-medium text-slate-700">
-                        {formData.city || "City"}
+                      <p className="text-[10px] text-[#929B91]">
+                        Location
                       </p>
 
-                      <p className="mt-0.5 line-clamp-2 text-xs text-slate-400">
+                      <p className="break-words text-xs font-medium text-[#39483D]">
                         {formData.address || "Property address"}
                       </p>
                     </div>
                   </div>
 
-                  <div className="my-5 border-t border-slate-100" />
+                  <div className="flex items-center gap-2">
+                    <IndianRupee size={15} className="text-[#527C61]" />
 
-                  {/* Rent */}
-                  <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-slate-400">Monthly Rent</p>
+                      <p className="text-[10px] text-[#929B91]">
+                        Monthly Rent
+                      </p>
 
-                      <p className="mt-1 text-2xl font-bold text-blue-600">
+                      <p className="text-base font-bold text-[#244B3C]">
                         ₹{formattedRent}
                       </p>
                     </div>
+                  </div>
 
-                    <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-600">
-                      Active
-                    </span>
+                  <div className="flex items-center gap-1.5 border-t border-[#F0EEE7] pt-3 text-[10px] font-medium text-[#527C61]">
+                    <CheckCircle2 size={13} />
+                    Property details ready to update
                   </div>
                 </div>
               </div>
 
-              {/* Update information */}
-              <div className="rounded-3xl border border-amber-100 bg-amber-50 p-5">
-                <div className="flex gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100">
-                    💡
-                  </div>
+              {/* Tips */}
+              <div className="rounded-xl border border-[#E9DFC9] bg-[#FBF7EE] p-4">
+                <div className="flex items-center gap-2">
+                  <Lightbulb size={17} className="text-[#A47A3F]" />
 
-                  <div>
-                    <h3 className="font-semibold text-amber-900">
-                      Before updating
-                    </h3>
-
-                    <ul className="mt-3 space-y-2 text-sm text-amber-800/70">
-                      <li className="flex gap-2">
-                        <span>✓</span>
-                        Check the property address.
-                      </li>
-
-                      <li className="flex gap-2">
-                        <span>✓</span>
-                        Make sure the rent is correct.
-                      </li>
-
-                      <li className="flex gap-2">
-                        <span>✓</span>
-                        Use a clear property image.
-                      </li>
-                    </ul>
-                  </div>
+                  <h3 className="text-xs font-bold text-[#6F542D]">
+                    Before Updating
+                  </h3>
                 </div>
+
+                <ul className="mt-3 space-y-2">
+                  {[
+                    "Check the property address.",
+                    "Verify the monthly rent.",
+                    "Use a clear property image.",
+                  ].map((tip) => (
+                    <li
+                      key={tip}
+                      className="flex items-start gap-2 text-[11px] text-[#796A50]"
+                    >
+                      <CheckCircle2
+                        size={13}
+                        className="mt-0.5 shrink-0 text-[#527C61]"
+                      />
+                      {tip}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </div>
 
-          {/* =====================================================
-              ACTION BAR
-          ====================================================== */}
+          {/* Action bar */}
+          <div className="mt-4 flex flex-col-reverse gap-2 rounded-xl border border-[#E6E3D9] bg-white p-3 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={() => navigate("/landlord/properties")}
+              disabled={loading}
+              className="rounded-lg border border-[#DCE4DB] px-5 py-2.5 text-xs font-semibold text-[#526056] transition hover:bg-[#F1F3EF] disabled:opacity-50"
+            >
+              Cancel
+            </button>
 
-          <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="hidden text-sm text-slate-400 sm:block">
-                Changes will be saved to your property listing.
-              </p>
-
-              <div className="flex w-full flex-col-reverse gap-3 sm:w-auto sm:flex-row">
-                <button
-                  type="button"
-                  onClick={() => navigate("/landlord/properties")}
-                  disabled={loading}
-                  className="rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-7 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-blue-400"
-                >
-                  {loading ? (
-                    <>
-                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                      Updating...
-                    </>
-                  ) : (
-                    <>
-                      Save Changes
-                      <span>→</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#244B3C] px-6 py-2.5 text-xs font-semibold text-white transition hover:bg-[#193A2E] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  Updating...
+                </>
+              ) : (
+                <>
+                  <Save size={14} />
+                  Save Changes
+                  <ArrowRight size={14} />
+                </>
+              )}
+            </button>
           </div>
         </form>
       </div>

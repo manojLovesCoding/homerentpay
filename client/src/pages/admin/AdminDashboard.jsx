@@ -1,4 +1,16 @@
+
 import React, { useEffect, useState } from "react";
+import {
+  Users,
+  UserRound,
+  Building2,
+  IndianRupee,
+  Clock3,
+  Activity,
+  Wallet,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
 import api from "../../api/axios.js";
 
 const AdminDashboard = () => {
@@ -23,378 +35,259 @@ const AdminDashboard = () => {
     fetchDashboard();
   }, []);
 
+  const statCards = [
+    {
+      label: "Total Users",
+      value: stats.totalUsers || 0,
+      description: "Registered users",
+      icon: Users,
+    },
+    {
+      label: "Tenants",
+      value: stats.totalTenants || 0,
+      description: "Active tenants",
+      icon: UserRound,
+    },
+    {
+      label: "Landlords",
+      value: stats.totalLandlords || 0,
+      description: "Property owners",
+      icon: Building2,
+    },
+    {
+      label: "Properties",
+      value: stats.totalProperties || 0,
+      description: "Total listings",
+      icon: Building2,
+    },
+    {
+      label: "Revenue",
+      value: `₹${Number(stats.revenue || 0).toLocaleString("en-IN")}`,
+      description: "Total collected",
+      icon: Wallet,
+    },
+    {
+      label: "Pending Payments",
+      value: stats.pendingPayments || 0,
+      description: "Awaiting payment",
+      icon: Clock3,
+    },
+  ];
+
+  const summaryItems = [
+    {
+      label: "Users",
+      value: stats.totalUsers || 0,
+      percentage: 75,
+    },
+    {
+      label: "Tenants",
+      value: stats.totalTenants || 0,
+      percentage: 60,
+    },
+    {
+      label: "Landlords",
+      value: stats.totalLandlords || 0,
+      percentage: 45,
+    },
+    {
+      label: "Properties",
+      value: stats.totalProperties || 0,
+      percentage: 55,
+    },
+  ];
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
-        <div className="max-w-7xl mx-auto space-y-6 animate-pulse">
-          {/* Header Skeleton */}
-          <div className="h-44 bg-slate-200 rounded-3xl" />
+      <div className="bg-[#F7F8F5] p-4 sm:p-5">
+        <div className="mx-auto max-w-7xl animate-pulse space-y-4">
+          <div className="h-20 rounded-xl bg-[#E6E9E1]" />
 
-          {/* Stats Skeleton */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-            {[1, 2, 3, 4, 5, 6].map((item) => (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+            {Array.from({ length: 6 }).map((_, index) => (
               <div
-                key={item}
-                className="h-32 bg-white rounded-2xl border border-slate-100"
+                key={index}
+                className="h-24 rounded-xl border border-[#E6E3D9] bg-white"
               />
             ))}
           </div>
 
-          {/* Activity Skeleton */}
-          <div className="h-80 bg-white rounded-3xl border border-slate-100" />
+          <div className="grid gap-4 lg:grid-cols-3">
+            <div className="h-72 rounded-xl bg-white lg:col-span-2" />
+            <div className="h-72 rounded-xl bg-white" />
+          </div>
         </div>
       </div>
     );
   }
 
-  const statCards = [
-    {
-      label: "Total Users",
-      value: stats.totalUsers || 0,
-      icon: "♙",
-      color: "indigo",
-      description: "Registered users",
-    },
-    {
-      label: "Tenants",
-      value: stats.totalTenants || 0,
-      icon: "♟",
-      color: "blue",
-      description: "Active tenants",
-    },
-    {
-      label: "Landlords",
-      value: stats.totalLandlords || 0,
-      icon: "♙",
-      color: "violet",
-      description: "Property owners",
-    },
-    {
-      label: "Properties",
-      value: stats.totalProperties || 0,
-      icon: "⌂",
-      color: "cyan",
-      description: "Total listings",
-    },
-    {
-      label: "Revenue",
-      value: `₹${Number(stats.revenue || 0).toLocaleString("en-IN")}`,
-      icon: "₹",
-      color: "emerald",
-      description: "Total collected",
-    },
-    {
-      label: "Pending Payments",
-      value: stats.pendingPayments || 0,
-      icon: "!",
-      color: "amber",
-      description: "Awaiting payment",
-    },
-  ];
-
-  const colorStyles = {
-    indigo: {
-      icon: "bg-indigo-50 text-indigo-600",
-      accent: "bg-indigo-500",
-    },
-    blue: {
-      icon: "bg-blue-50 text-blue-600",
-      accent: "bg-blue-500",
-    },
-    violet: {
-      icon: "bg-violet-50 text-violet-600",
-      accent: "bg-violet-500",
-    },
-    cyan: {
-      icon: "bg-cyan-50 text-cyan-600",
-      accent: "bg-cyan-500",
-    },
-    emerald: {
-      icon: "bg-emerald-50 text-emerald-600",
-      accent: "bg-emerald-500",
-    },
-    amber: {
-      icon: "bg-amber-50 text-amber-600",
-      accent: "bg-amber-500",
-    },
-  };
-
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* =====================================================
-            HERO HEADER
-        ====================================================== */}
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 p-6 sm:p-8 lg:p-10 shadow-xl shadow-indigo-100">
-          {/* Decorative background */}
-          <div className="absolute -top-24 -right-20 w-72 h-72 rounded-full bg-white/10" />
+    <div className="min-h-full bg-[#F7F8F5] p-3 sm:p-4 lg:p-5">
+      <div className="mx-auto max-w-7xl space-y-4">
 
-          <div className="absolute -bottom-32 right-32 w-96 h-96 rounded-full bg-white/5" />
+        {/* Page Header */}
+        <section className="flex flex-col gap-3 rounded-xl border border-[#E6E3D9] bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#527C61]">
+              Administration
+            </p>
 
-          <div className="absolute top-1/2 -left-20 w-48 h-48 rounded-full bg-violet-400/10" />
+            <h1 className="mt-0.5 text-xl font-bold tracking-tight text-[#242B26] sm:text-2xl">
+              Admin Dashboard
+            </h1>
 
-          <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
-            <div className="max-w-2xl">
-              <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 backdrop-blur-sm rounded-full px-3 py-1.5 mb-5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <p className="mt-1 text-xs text-[#68756A] sm:text-sm">
+              Monitor users, properties, payments and platform activity.
+            </p>
+          </div>
 
-                <span className="text-xs font-medium text-blue-50">
-                  System is running
-                </span>
-              </div>
-
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight">
-                Admin Dashboard
-              </h1>
-
-              <p className="mt-3 text-sm sm:text-base text-blue-100 leading-relaxed max-w-xl">
-                Monitor users, properties, payments and rental activity from one
-                centralized dashboard.
-              </p>
-            </div>
-
-            {/* Quick Overview */}
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-5 min-w-full sm:min-w-[230px] lg:min-w-[250px]">
-              <p className="text-xs uppercase tracking-wider font-semibold text-blue-100">
-                Total Revenue
-              </p>
-
-              <p className="text-3xl font-bold text-white mt-2">
-                ₹{Number(stats.revenue || 0).toLocaleString("en-IN")}
-              </p>
-
-              <div className="flex items-center gap-2 mt-3">
-                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-400/20 text-emerald-200 text-xs">
-                  ↗
-                </span>
-
-                <span className="text-xs text-blue-100">
-                  Overall collected revenue
-                </span>
-              </div>
-            </div>
+          <div className="flex w-fit items-center gap-2 rounded-full border border-[#DCE7DA] bg-[#EAF0E8] px-3 py-1.5">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-[#527C61]" />
+            <span className="text-xs font-semibold text-[#244B3C]">
+              System is running
+            </span>
           </div>
         </section>
 
-        {/* =====================================================
-            SECTION TITLE
-        ====================================================== */}
-        <div className="flex items-center justify-between">
+        {/* Revenue Overview */}
+        <section className="flex flex-col justify-between gap-2 rounded-xl bg-[#244B3C] px-4 py-3 sm:flex-row sm:items-center">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
-              Platform Overview
-            </h2>
-
-            <p className="text-sm text-slate-500 mt-1">
-              Key metrics from your rental platform
+            <p className="text-xs font-medium text-[#DCE7DA]">
+              Total Collected Revenue
             </p>
+
+            <h2 className="mt-0.5 text-2xl font-bold text-white">
+              ₹{Number(stats.revenue || 0).toLocaleString("en-IN")}
+            </h2>
           </div>
-        </div>
 
-        {/* =====================================================
-            STATS GRID
-        ====================================================== */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
-          {statCards.map((item) => {
-            const colors = colorStyles[item.color];
+          <div className="flex items-center gap-2 text-xs text-[#DCE7DA]">
+            <Wallet size={16} />
+            <span>Overall platform collection</span>
+          </div>
+        </section>
 
-            return (
-              <div
-                key={item.label}
-                className="
-                  group relative
-                  bg-white
-                  border border-slate-100
-                  rounded-2xl
-                  p-5
-                  sm:p-6
-                  shadow-sm
-                  hover:shadow-xl
-                  hover:-translate-y-1
-                  transition-all duration-300
-                  overflow-hidden
-                "
-              >
-                {/* Accent */}
+        {/* Statistics */}
+        <section>
+          <div className="mb-2 flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold text-[#242B26]">
+                Platform Overview
+              </h2>
+              <p className="text-xs text-[#68756A]">
+                Key platform statistics
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+            {statCards.map((item) => {
+              const Icon = item.icon;
+
+              return (
                 <div
-                  className={`
-                    absolute top-0 left-0 right-0 h-1
-                    ${colors.accent}
-                  `}
-                />
-
-                <div className="flex items-start justify-between gap-4">
-                  {/* Text */}
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-slate-500">
+                  key={item.label}
+                  className="rounded-xl border border-[#E6E3D9] bg-white p-3 shadow-sm transition hover:border-[#A8BDA5] hover:shadow-md"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="min-w-0 text-xs font-medium text-[#68756A]">
                       {item.label}
                     </p>
 
-                    <h3 className="text-2xl sm:text-3xl font-bold text-slate-900 mt-2 truncate">
-                      {item.value}
-                    </h3>
-
-                    <p className="text-xs text-slate-400 mt-2">
-                      {item.description}
-                    </p>
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#EAF0E8] text-[#244B3C]">
+                      <Icon size={16} strokeWidth={2} />
+                    </div>
                   </div>
 
-                  {/* Icon */}
-                  <div
-                    className={`
-                      flex-shrink-0
-                      w-12 h-12
-                      rounded-2xl
-                      flex items-center justify-center
-                      text-xl font-bold
-                      ${colors.icon}
-                      group-hover:scale-110
-                      transition-transform duration-300
-                    `}
-                  >
-                    {item.icon}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                  <h3 className="mt-2 truncate text-xl font-bold text-[#244B3C]">
+                    {item.value}
+                  </h3>
 
-        {/* =====================================================
-            BOTTOM GRID
-        ====================================================== */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* =================================================
-              ACTIVITY
-          ================================================== */}
-          <div className="lg:col-span-2 bg-white border border-slate-100 rounded-3xl shadow-sm overflow-hidden">
-            {/* Header */}
-            <div className="px-5 sm:px-6 py-5 border-b border-slate-100">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg sm:text-xl font-bold text-slate-900">
-                    Recent Activity
-                  </h2>
-
-                  <p className="text-sm text-slate-500 mt-1">
-                    Latest payment activity across the platform
+                  <p className="mt-0.5 text-[10px] text-[#879187]">
+                    {item.description}
                   </p>
                 </div>
+              );
+            })}
+          </div>
+        </section>
 
-                <div className="hidden sm:flex items-center gap-2 text-xs text-slate-500">
-                  <span className="w-2 h-2 rounded-full bg-indigo-500" />
-                  Live activity
-                </div>
+        {/* Activity and Summary */}
+        <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+
+          {/* Recent Activity */}
+          <div className="overflow-hidden rounded-xl border border-[#E6E3D9] bg-white shadow-sm lg:col-span-2">
+            <div className="flex items-center justify-between border-b border-[#E6E3D9] px-4 py-3">
+              <div>
+                <h2 className="text-sm font-bold text-[#242B26]">
+                  Recent Activity
+                </h2>
+                <p className="mt-0.5 text-xs text-[#879187]">
+                  Latest payment activity across the platform
+                </p>
+              </div>
+
+              <div className="flex items-center gap-1.5 text-[10px] font-medium text-[#527C61]">
+                <Activity size={13} />
+                Live activity
               </div>
             </div>
 
-            {/* Activity */}
-            <div className="p-5 sm:p-6">
+            <div className="p-3">
               {activities.length > 0 ? (
-                <div className="space-y-2">
-                  {activities.map((item, index) => (
+                <div className="space-y-1">
+                  {activities.map((item) => (
                     <div
                       key={item._id}
-                      className="
-                        group
-                        flex items-start gap-4
-                        p-4
-                        rounded-2xl
-                        hover:bg-slate-50
-                        transition-colors
-                      "
+                      className="flex items-center gap-3 rounded-lg px-2 py-2.5 transition hover:bg-[#F7F8F5]"
                     >
-                      {/* Timeline */}
-                      <div className="flex flex-col items-center">
-                        <div
-                          className="
-                          w-10 h-10
-                          rounded-xl
-                          bg-indigo-50
-                          text-indigo-600
-                          flex items-center justify-center
-                          font-bold
-                        "
-                        >
-                          ₹
-                        </div>
-
-                        {index !== activities.length - 1 && (
-                          <div className="w-px h-6 bg-slate-200 mt-2" />
-                        )}
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#EAF0E8] text-[#244B3C]">
+                        <IndianRupee size={17} />
                       </div>
 
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-slate-600 leading-relaxed">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs leading-5 text-[#526056]">
                           Payment received from{" "}
-                          <span className="font-semibold text-slate-900">
+                          <span className="font-semibold text-[#242B26]">
                             {item.tenant?.name || "Unknown"}
                           </span>{" "}
                           for{" "}
-                          <span className="font-semibold text-slate-900">
+                          <span className="font-semibold text-[#242B26]">
                             {item.property?.title || "Property"}
                           </span>
                         </p>
 
-                        <div className="flex flex-wrap items-center gap-2 mt-2">
-                          <span className="text-xs text-slate-400">
+                        <div className="mt-0.5 flex flex-wrap items-center gap-2">
+                          <span className="text-[10px] text-[#879187]">
                             Payment received
                           </span>
 
                           {item.amount && (
-                            <>
-                              <span className="w-1 h-1 rounded-full bg-slate-300" />
-
-                              <span className="text-xs font-semibold text-emerald-600">
-                                ₹{Number(item.amount).toLocaleString("en-IN")}
-                              </span>
-                            </>
+                            <span className="text-[10px] font-bold text-[#527C61]">
+                              ₹{Number(item.amount).toLocaleString("en-IN")}
+                            </span>
                           )}
                         </div>
                       </div>
 
-                      {/* Status */}
-                      <span
-                        className="
-                        hidden sm:inline-flex
-                        flex-shrink-0
-                        items-center gap-1.5
-                        px-2.5 py-1
-                        rounded-full
-                        bg-emerald-50
-                        text-emerald-700
-                        text-xs
-                        font-semibold
-                      "
-                      >
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      <span className="hidden shrink-0 items-center gap-1 rounded-full bg-[#EAF0E8] px-2 py-1 text-[10px] font-semibold text-[#244B3C] sm:inline-flex">
+                        <CheckCircle2 size={11} />
                         Paid
                       </span>
                     </div>
                   ))}
                 </div>
               ) : (
-                /* Empty state */
-                <div className="py-14 text-center">
-                  <div
-                    className="
-                    w-16 h-16
-                    mx-auto
-                    rounded-2xl
-                    bg-slate-100
-                    flex items-center justify-center
-                    text-2xl
-                  "
-                  >
-                    📊
+                <div className="py-9 text-center">
+                  <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-[#EAF0E8] text-[#527C61]">
+                    <Activity size={21} />
                   </div>
 
-                  <h3 className="mt-4 text-lg font-semibold text-slate-900">
+                  <h3 className="mt-2 text-sm font-semibold text-[#242B26]">
                     No recent activity
                   </h3>
 
-                  <p className="mt-1 text-sm text-slate-500">
+                  <p className="mt-1 text-xs text-[#879187]">
                     Payment activity will appear here.
                   </p>
                 </div>
@@ -402,134 +295,59 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          {/* =================================================
-              QUICK SUMMARY
-          ================================================== */}
-          <div className="bg-white border border-slate-100 rounded-3xl shadow-sm p-5 sm:p-6">
-            <h2 className="text-lg font-bold text-slate-900">Quick Summary</h2>
-
-            <p className="text-sm text-slate-500 mt-1">Platform statistics</p>
-
-            <div className="mt-6 space-y-5">
-              {/* Users */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-slate-600">
-                    Users
-                  </span>
-
-                  <span className="text-sm font-bold text-slate-900">
-                    {stats.totalUsers || 0}
-                  </span>
-                </div>
-
-                <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-indigo-500"
-                    style={{
-                      width: "75%",
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Tenants */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-slate-600">
-                    Tenants
-                  </span>
-
-                  <span className="text-sm font-bold text-slate-900">
-                    {stats.totalTenants || 0}
-                  </span>
-                </div>
-
-                <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-blue-500"
-                    style={{
-                      width: "60%",
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Landlords */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-slate-600">
-                    Landlords
-                  </span>
-
-                  <span className="text-sm font-bold text-slate-900">
-                    {stats.totalLandlords || 0}
-                  </span>
-                </div>
-
-                <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-violet-500"
-                    style={{
-                      width: "45%",
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Properties */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-slate-600">
-                    Properties
-                  </span>
-
-                  <span className="text-sm font-bold text-slate-900">
-                    {stats.totalProperties || 0}
-                  </span>
-                </div>
-
-                <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-cyan-500"
-                    style={{
-                      width: "55%",
-                    }}
-                  />
-                </div>
-              </div>
+          {/* Quick Summary */}
+          <div className="rounded-xl border border-[#E6E3D9] bg-white p-4 shadow-sm">
+            <div>
+              <h2 className="text-sm font-bold text-[#242B26]">
+                Quick Summary
+              </h2>
+              <p className="mt-0.5 text-xs text-[#879187]">
+                Platform statistics
+              </p>
             </div>
 
-            {/* Pending payments */}
-            <div className="mt-8 p-4 rounded-2xl bg-amber-50 border border-amber-100">
-              <div className="flex items-center gap-3">
-                <div
-                  className="
-                  w-10 h-10
-                  rounded-xl
-                  bg-amber-100
-                  text-amber-600
-                  flex items-center justify-center
-                  font-bold
-                "
-                >
-                  !
-                </div>
+            <div className="mt-4 space-y-4">
+              {summaryItems.map((item) => (
+                <div key={item.label}>
+                  <div className="mb-1.5 flex items-center justify-between">
+                    <span className="text-xs font-medium text-[#68756A]">
+                      {item.label}
+                    </span>
 
-                <div>
-                  <p className="text-sm font-semibold text-amber-900">
-                    Pending Payments
-                  </p>
+                    <span className="text-xs font-bold text-[#242B26]">
+                      {item.value}
+                    </span>
+                  </div>
 
-                  <p className="text-xs text-amber-700 mt-0.5">
-                    {stats.pendingPayments || 0} payment
-                    {stats.pendingPayments !== 1 ? "s" : ""} awaiting
-                  </p>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-[#EEF0EB]">
+                    <div
+                      className="h-full rounded-full bg-[#527C61]"
+                      style={{ width: `${item.percentage}%` }}
+                    />
+                  </div>
                 </div>
+              ))}
+            </div>
+
+            {/* Pending Payments */}
+            <div className="mt-5 flex items-center gap-3 rounded-lg border border-[#E8E1CC] bg-[#FBF7EB] p-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F1E8CD] text-[#9A7435]">
+                <AlertCircle size={17} />
+              </div>
+
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-[#66512D]">
+                  Pending Payments
+                </p>
+
+                <p className="mt-0.5 text-[11px] text-[#8B7448]">
+                  {stats.pendingPayments || 0} payment
+                  {stats.pendingPayments !== 1 ? "s" : ""} awaiting
+                </p>
               </div>
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );

@@ -1,5 +1,20 @@
-import React, { useRef, useState } from "react";
+
+import React, { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Building2,
+  MapPin,
+  IndianRupee,
+  ImagePlus,
+  Upload,
+  X,
+  CheckCircle2,
+  Lightbulb,
+  Home,
+} from "lucide-react";
+import toast from "react-hot-toast";
 import api from "../../api/axios.js";
 
 const AddProperty = () => {
@@ -17,6 +32,15 @@ const AddProperty = () => {
     image: null,
   });
 
+  // Clean up image preview URL
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
+
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
@@ -24,21 +48,30 @@ const AddProperty = () => {
     }));
   };
 
+  // Image selection
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
 
     if (!file) return;
+
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+    }
 
     setFormData((prev) => ({
       ...prev,
       image: file,
     }));
 
-    const previewUrl = URL.createObjectURL(file);
-    setImagePreview(previewUrl);
+    setImagePreview(URL.createObjectURL(file));
   };
 
+  // Remove selected image
   const removeImage = () => {
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+    }
+
     setFormData((prev) => ({
       ...prev,
       image: null,
@@ -51,11 +84,12 @@ const AddProperty = () => {
     }
   };
 
+  // Submit property
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (Number(formData.rent) <= 0) {
-      alert("Please enter a valid monthly rent.");
+      toast.error("Please enter a valid monthly rent.");
       return;
     }
 
@@ -82,7 +116,7 @@ const AddProperty = () => {
         },
       });
 
-      alert("Property added successfully");
+      toast.success("Property added successfully!");
 
       setFormData({
         title: "",
@@ -92,6 +126,10 @@ const AddProperty = () => {
         image: null,
       });
 
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+
       setImagePreview(null);
 
       if (fileRef.current) {
@@ -100,89 +138,87 @@ const AddProperty = () => {
 
       navigate("/landlord/properties");
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to add property");
+      toast.error(
+        err.response?.data?.message || "Failed to add property"
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  const formatRent = () =>
+    formData.rent
+      ? Number(formData.rent).toLocaleString("en-IN")
+      : "0";
+
+  const inputClass =
+    "w-full rounded-lg border border-[#E6E3D9] bg-[#F8F9F6] px-3 py-2.5 text-sm text-[#242B26] outline-none transition placeholder:text-[#A0A99F] focus:border-[#527C61] focus:bg-white disabled:cursor-not-allowed disabled:opacity-60";
+
+  const labelClass =
+    "mb-1.5 block text-xs font-semibold text-[#39483D]";
+
   return (
-    <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
-      <div className="mx-auto max-w-6xl">
-        {/* =====================================================
-            PAGE HEADER
-        ====================================================== */}
+    <div className="bg-[#F7F8F5] p-3 sm:p-5">
+      <div className="mx-auto max-w-6xl space-y-4">
 
-        <div className="relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-r from-blue-700 via-indigo-700 to-violet-700 p-6 shadow-xl shadow-blue-900/10 sm:p-8">
-          {/* Decorative circles */}
-          <div className="absolute -right-20 -top-32 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
-
-          <div className="absolute -bottom-32 -left-20 h-72 w-72 rounded-full bg-indigo-950/20 blur-3xl" />
-
-          <div className="relative">
+        {/* Header */}
+        <div className="flex flex-col justify-between gap-3 rounded-2xl bg-[#244B3C] px-4 py-4 sm:flex-row sm:items-center sm:px-5">
+          <div>
             <button
               type="button"
               onClick={() => navigate("/landlord/properties")}
-              className="mb-5 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm font-medium text-white backdrop-blur transition hover:bg-white/20"
+              className="mb-2 inline-flex items-center gap-1.5 text-xs font-medium text-[#DCE8DC] transition hover:text-white"
             >
-              ← Back to Properties
+              <ArrowLeft size={14} />
+              Back to Properties
             </button>
 
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-medium text-blue-100 backdrop-blur">
-              <span className="h-2 w-2 rounded-full bg-emerald-400" />
-              Property Management
+            <div className="flex items-center gap-2">
+              <Building2 size={19} className="text-[#D6A45D]" />
+              <h1 className="text-xl font-bold text-white sm:text-2xl">
+                Add New Property
+              </h1>
             </div>
 
-            <h1 className="mt-3 text-3xl font-bold text-white sm:text-4xl">
-              Add New Property
-            </h1>
-
-            <p className="mt-2 max-w-2xl text-sm text-blue-100/80 sm:text-base">
-              Add your rental property details and make it available for
-              tenants.
+            <p className="mt-1 text-xs text-[#DCE8DC]">
+              Enter property information and publish your rental listing.
             </p>
+          </div>
+
+          <div className="hidden items-center gap-2 rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-xs font-medium text-white sm:flex">
+            <span className="h-2 w-2 rounded-full bg-[#A8BDA5]" />
+            New Listing
           </div>
         </div>
 
-        {/* =====================================================
-            FORM
-        ====================================================== */}
-
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            {/* =================================================
-                LEFT — PROPERTY DETAILS
-            ================================================== */}
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
 
-            <div className="space-y-6 lg:col-span-2">
-              {/* Basic details */}
-              <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-                <div className="mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-xl">
-                      🏠
-                    </div>
+            {/* Property details */}
+            <div className="space-y-4 lg:col-span-2">
 
-                    <div>
-                      <h2 className="text-lg font-bold text-slate-900">
-                        Property Details
-                      </h2>
+              <div className="rounded-xl border border-[#E6E3D9] bg-white p-4">
+                <div className="mb-4 flex items-center gap-2.5 border-b border-[#F0EEE7] pb-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#EAF0E9] text-[#527C61]">
+                    <Home size={19} />
+                  </div>
 
-                      <p className="text-sm text-slate-500">
-                        Enter the basic information about your property.
-                      </p>
-                    </div>
+                  <div>
+                    <h2 className="text-sm font-bold text-[#242B26]">
+                      Property Details
+                    </h2>
+                    <p className="text-[11px] text-[#849084]">
+                      Basic information about your rental property
+                    </p>
                   </div>
                 </div>
 
-                <div className="space-y-5">
+                <div className="space-y-3.5">
+
                   {/* Title */}
                   <div>
-                    <label
-                      htmlFor="title"
-                      className="mb-2 block text-sm font-semibold text-slate-700"
-                    >
-                      Property Title
+                    <label htmlFor="title" className={labelClass}>
+                      Property Title <span className="text-red-500">*</span>
                     </label>
 
                     <input
@@ -193,21 +229,14 @@ const AddProperty = () => {
                       placeholder="e.g. Modern 2BHK Apartment"
                       required
                       disabled={loading}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                      className={inputClass}
                     />
-
-                    <p className="mt-1.5 text-xs text-slate-400">
-                      Give your property a clear and attractive title.
-                    </p>
                   </div>
 
                   {/* Address */}
                   <div>
-                    <label
-                      htmlFor="address"
-                      className="mb-2 block text-sm font-semibold text-slate-700"
-                    >
-                      Full Address
+                    <label htmlFor="address" className={labelClass}>
+                      Full Address <span className="text-red-500">*</span>
                     </label>
 
                     <textarea
@@ -216,28 +245,26 @@ const AddProperty = () => {
                       value={formData.address}
                       onChange={handleChange}
                       placeholder="Enter complete property address"
-                      rows={4}
+                      rows={2}
                       required
                       disabled={loading}
-                      className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                      className={`${inputClass} resize-none`}
                     />
                   </div>
 
-                  {/* City + Rent */}
-                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    {/* City */}
+                  {/* City and Rent */}
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+
                     <div>
-                      <label
-                        htmlFor="city"
-                        className="mb-2 block text-sm font-semibold text-slate-700"
-                      >
-                        City
+                      <label htmlFor="city" className={labelClass}>
+                        City <span className="text-red-500">*</span>
                       </label>
 
                       <div className="relative">
-                        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2">
-                          📍
-                        </span>
+                        <MapPin
+                          size={15}
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-[#849084]"
+                        />
 
                         <input
                           id="city"
@@ -247,24 +274,21 @@ const AddProperty = () => {
                           placeholder="e.g. Bangalore"
                           required
                           disabled={loading}
-                          className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                          className={`${inputClass} pl-9`}
                         />
                       </div>
                     </div>
 
-                    {/* Rent */}
                     <div>
-                      <label
-                        htmlFor="rent"
-                        className="mb-2 block text-sm font-semibold text-slate-700"
-                      >
-                        Monthly Rent
+                      <label htmlFor="rent" className={labelClass}>
+                        Monthly Rent <span className="text-red-500">*</span>
                       </label>
 
                       <div className="relative">
-                        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 font-semibold text-slate-400">
-                          ₹
-                        </span>
+                        <IndianRupee
+                          size={15}
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-[#849084]"
+                        />
 
                         <input
                           id="rent"
@@ -276,94 +300,77 @@ const AddProperty = () => {
                           placeholder="15000"
                           required
                           disabled={loading}
-                          className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                          className={`${inputClass} pl-9`}
                         />
                       </div>
                     </div>
+
                   </div>
                 </div>
               </div>
 
-              {/* =================================================
-                  IMAGE UPLOAD
-              ================================================== */}
+              {/* Image Upload */}
+              <div className="rounded-xl border border-[#E6E3D9] bg-white p-4">
+                <div className="mb-3 flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#F5EFE3] text-[#A47A3F]">
+                    <ImagePlus size={19} />
+                  </div>
 
-              <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-                <div className="mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-50 text-xl">
-                      📷
-                    </div>
-
-                    <div>
-                      <h2 className="text-lg font-bold text-slate-900">
-                        Property Image
-                      </h2>
-
-                      <p className="text-sm text-slate-500">
-                        Upload a high-quality image of your property.
-                      </p>
-                    </div>
+                  <div>
+                    <h2 className="text-sm font-bold text-[#242B26]">
+                      Property Image
+                    </h2>
+                    <p className="text-[11px] text-[#849084]">
+                      Add a clear photo of your property
+                    </p>
                   </div>
                 </div>
 
                 {imagePreview ? (
-                  /* Image preview */
-                  <div className="relative overflow-hidden rounded-2xl border border-slate-200">
+                  <div className="relative overflow-hidden rounded-lg border border-[#E6E3D9]">
                     <img
                       src={imagePreview}
                       alt="Property preview"
-                      className="h-72 w-full object-cover sm:h-96"
+                      className="h-40 w-full object-cover sm:h-48"
                     />
 
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-5 pt-16">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-semibold text-white">
-                            {formData.image?.name}
-                          </p>
-
-                          <p className="mt-1 text-xs text-white/70">
-                            Image preview
-                          </p>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={removeImage}
-                          disabled={loading}
-                          className="rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-600"
-                        >
-                          Remove
-                        </button>
+                    <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-gradient-to-t from-black/70 to-transparent p-3 pt-8">
+                      <div className="min-w-0">
+                        <p className="truncate text-xs font-semibold text-white">
+                          {formData.image?.name}
+                        </p>
+                        <p className="text-[10px] text-white/70">
+                          Image preview
+                        </p>
                       </div>
+
+                      <button
+                        type="button"
+                        onClick={removeImage}
+                        disabled={loading}
+                        className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-white/95 px-3 py-1.5 text-xs font-semibold text-[#B45D50] hover:bg-white"
+                      >
+                        <X size={13} />
+                        Remove
+                      </button>
                     </div>
                   </div>
                 ) : (
-                  /* Upload area */
                   <label
                     htmlFor="property-image"
-                    className="group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-center transition hover:border-blue-400 hover:bg-blue-50/50"
+                    className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-[#C9D4C8] bg-[#F8F9F6] px-4 py-6 text-center transition hover:border-[#527C61] hover:bg-[#F1F5F0]"
                   >
-                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-100 text-3xl transition group-hover:scale-105">
-                      📸
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EAF0E9] text-[#527C61]">
+                      <Upload size={20} />
                     </div>
 
-                    <h3 className="mt-4 font-semibold text-slate-900">
-                      Upload property image
-                    </h3>
-
-                    <p className="mt-1 text-sm text-slate-500">
-                      Click to browse from your device
+                    <p className="mt-2 text-xs font-semibold text-[#39483D]">
+                      Click to upload property image
                     </p>
 
-                    <p className="mt-3 text-xs text-slate-400">
-                      PNG, JPG or JPEG • Recommended: 1200×800
+                    <p className="mt-1 text-[10px] text-[#929B91]">
+                      PNG, JPG or JPEG
                     </p>
-
-                    <span className="mt-5 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-600/20 transition group-hover:bg-blue-500">
-                      Choose Image
-                    </span>
 
                     <input
                       id="property-image"
@@ -379,135 +386,133 @@ const AddProperty = () => {
               </div>
             </div>
 
-            {/* =================================================
-                RIGHT — SUMMARY
-            ================================================== */}
+            {/* Right Sidebar */}
+            <div className="space-y-4">
 
-            <div className="space-y-6">
-              {/* Preview card */}
-              <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-                <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-6">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-blue-100">
-                    Property Preview
+              {/* Live Preview */}
+              <div className="overflow-hidden rounded-xl border border-[#E6E3D9] bg-white">
+                <div className="bg-[#244B3C] px-4 py-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[#D6A45D]">
+                    Live Preview
                   </p>
 
-                  <h2 className="mt-2 text-xl font-bold text-white">
+                  <h2 className="mt-1 truncate text-base font-bold text-white">
                     {formData.title || "Your Property"}
                   </h2>
 
-                  <p className="mt-1 text-sm text-blue-100">
+                  <p className="mt-0.5 text-xs text-[#DCE8DC]">
                     {formData.city || "City"}
                   </p>
                 </div>
 
-                <div className="p-5">
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100">
-                        📍
-                      </div>
+                {imagePreview && (
+                  <img
+                    src={imagePreview}
+                    alt="Property"
+                    className="h-28 w-full object-cover"
+                  />
+                )}
 
-                      <div>
-                        <p className="text-xs text-slate-400">Location</p>
+                <div className="space-y-3 p-4">
+                  <div className="flex items-start gap-2">
+                    <MapPin
+                      size={15}
+                      className="mt-0.5 shrink-0 text-[#527C61]"
+                    />
 
-                        <p className="mt-0.5 text-sm font-medium text-slate-700">
-                          {formData.address || "Address will appear here"}
-                        </p>
-                      </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] text-[#929B91]">
+                        Location
+                      </p>
+
+                      <p className="break-words text-xs font-medium text-[#39483D]">
+                        {formData.address || "Address will appear here"}
+                      </p>
                     </div>
+                  </div>
 
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50">
-                        💰
-                      </div>
+                  <div className="flex items-center gap-2">
+                    <IndianRupee size={15} className="text-[#527C61]" />
 
-                      <div>
-                        <p className="text-xs text-slate-400">Monthly Rent</p>
+                    <div>
+                      <p className="text-[10px] text-[#929B91]">
+                        Monthly Rent
+                      </p>
 
-                        <p className="mt-0.5 text-lg font-bold text-emerald-600">
-                          ₹
-                          {formData.rent
-                            ? Number(formData.rent).toLocaleString("en-IN")
-                            : "0"}
-                        </p>
-                      </div>
+                      <p className="text-base font-bold text-[#244B3C]">
+                        ₹{formatRent()}
+                      </p>
                     </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 border-t border-[#F0EEE7] pt-3 text-[10px] font-medium text-[#527C61]">
+                    <CheckCircle2 size={13} />
+                    Ready to create your listing
                   </div>
                 </div>
               </div>
 
-              {/* Tips */}
-              <div className="rounded-3xl border border-blue-100 bg-blue-50 p-5">
-                <div className="flex gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100">
-                    💡
-                  </div>
+              {/* Listing Tips */}
+              <div className="rounded-xl border border-[#E9DFC9] bg-[#FBF7EE] p-4">
+                <div className="flex items-center gap-2">
+                  <Lightbulb size={17} className="text-[#A47A3F]" />
 
-                  <div>
-                    <h3 className="font-semibold text-blue-900">
-                      Listing tips
-                    </h3>
-
-                    <ul className="mt-3 space-y-2 text-sm text-blue-800/70">
-                      <li className="flex gap-2">
-                        <span>✓</span>
-                        Use a clear property title.
-                      </li>
-
-                      <li className="flex gap-2">
-                        <span>✓</span>
-                        Add the complete address.
-                      </li>
-
-                      <li className="flex gap-2">
-                        <span>✓</span>
-                        Upload a bright, clear image.
-                      </li>
-
-                      <li className="flex gap-2">
-                        <span>✓</span>
-                        Enter the correct monthly rent.
-                      </li>
-                    </ul>
-                  </div>
+                  <h3 className="text-xs font-bold text-[#6F542D]">
+                    Listing Tips
+                  </h3>
                 </div>
+
+                <ul className="mt-3 space-y-2">
+                  {[
+                    "Use a clear property title.",
+                    "Enter the complete address.",
+                    "Upload a bright, clear image.",
+                    "Set the correct monthly rent.",
+                  ].map((tip) => (
+                    <li
+                      key={tip}
+                      className="flex items-start gap-2 text-[11px] text-[#796A50]"
+                    >
+                      <CheckCircle2
+                        size={13}
+                        className="mt-0.5 shrink-0 text-[#527C61]"
+                      />
+                      {tip}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </div>
 
-          {/* =====================================================
-              ACTION BAR
-          ====================================================== */}
+          {/* Action Bar */}
+          <div className="mt-4 flex flex-col-reverse gap-2 rounded-xl border border-[#E6E3D9] bg-white p-3 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={() => navigate("/landlord/properties")}
+              disabled={loading}
+              className="rounded-lg border border-[#DCE4DB] px-5 py-2.5 text-xs font-semibold text-[#526056] transition hover:bg-[#F1F3EF] disabled:opacity-50"
+            >
+              Cancel
+            </button>
 
-          <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              <button
-                type="button"
-                onClick={() => navigate("/landlord/properties")}
-                disabled={loading}
-                className="rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Cancel
-              </button>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-7 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-blue-400"
-              >
-                {loading ? (
-                  <>
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                    Uploading Property...
-                  </>
-                ) : (
-                  <>
-                    Add Property
-                    <span>→</span>
-                  </>
-                )}
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#244B3C] px-6 py-2.5 text-xs font-semibold text-white transition hover:bg-[#193A2E] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  Adding Property...
+                </>
+              ) : (
+                <>
+                  Add Property
+                  <ArrowRight size={15} />
+                </>
+              )}
+            </button>
           </div>
         </form>
       </div>

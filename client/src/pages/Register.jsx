@@ -1,5 +1,20 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
+import {
+  UserRound,
+  Mail,
+  Phone,
+  LockKeyhole,
+  Eye,
+  EyeOff,
+  Home,
+  KeyRound,
+  ArrowRight,
+  ArrowLeft,
+  CheckCircle2,
+  ShieldCheck,
+} from "lucide-react";
 import api from "../api/axios.js";
 
 const Register = () => {
@@ -16,17 +31,13 @@ const Register = () => {
 
   const [otp, setOtp] = useState("");
   const [step, setStep] = useState(1);
-
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
-
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // HANDLE FORM INPUTS
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
@@ -37,10 +48,8 @@ const Register = () => {
     setSuccess("");
   };
 
-  // SEND REGISTRATION OTP
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setError("");
     setSuccess("");
 
@@ -78,22 +87,22 @@ const Register = () => {
 
       setOtp("");
       setStep(2);
-
       setSuccess(data.message || "Verification code sent successfully.");
+      toast.success(data.message || "Verification code sent successfully.");
     } catch (err) {
-      setError(
+      const message =
         err.response?.data?.message ||
-          "Unable to send verification code. Please try again.",
-      );
+        "Unable to send verification code. Please try again.";
+
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
   };
 
-  // VERIFY OTP AND COMPLETE REGISTRATION
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
-
     setError("");
     setSuccess("");
 
@@ -115,20 +124,20 @@ const Register = () => {
         otp: otp.trim(),
       });
 
-      alert(data.message || "Registration successful!");
-
+      toast.success(data.message || "Registration successful!");
       navigate("/login", { replace: true });
     } catch (err) {
-      setError(
+      const message =
         err.response?.data?.message ||
-          "OTP verification failed. Please try again.",
-      );
+        "OTP verification failed. Please try again.";
+
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
   };
 
-  // RESEND OTP
   const handleResendOTP = async () => {
     setError("");
     setSuccess("");
@@ -146,18 +155,22 @@ const Register = () => {
 
       setOtp("");
 
-      setSuccess(data.message || "A new verification code has been sent.");
+      const message = data.message || "A new verification code has been sent.";
+
+      setSuccess(message);
+      toast.success(message);
     } catch (err) {
-      setError(
+      const message =
         err.response?.data?.message ||
-          "Unable to resend verification code. Please try again.",
-      );
+        "Unable to resend verification code. Please try again.";
+
+      setError(message);
+      toast.error(message);
     } finally {
       setResending(false);
     }
   };
 
-  // MASK EMAIL FOR DISPLAY
   const maskedEmail = (email) => {
     const [username, domain] = email.split("@");
 
@@ -169,507 +182,614 @@ const Register = () => {
     return `${visible}${hidden}@${domain}`;
   };
 
+  const inputClass =
+    "w-full rounded-lg border border-[#E6E3D9] bg-[#FAFAF6] py-2.5 pl-10 pr-3 text-sm text-[#242B26] outline-none transition placeholder:text-[#899489] focus:border-[#527C61] focus:bg-white focus:ring-2 focus:ring-[#A8BDA5]/25";
+
+  const labelClass = "mb-1.5 block text-xs font-semibold text-[#37443A]";
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-slate-100 px-4 py-10 sm:px-6">
-      {/* MAIN CONTAINER */}
-      <div className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-2xl flex-col justify-center">
-        {/* BRAND */}
-        <div className="mb-8 text-center">
-          <Link to="/" className="inline-flex items-center gap-3">
-            <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl bg-white p-1 shadow-md">
-              <img
-                src="/logo.jpg"
-                alt="HomeBridge Logo"
-                className="h-full w-full object-contain"
-              />
-            </div>
+    <div className="relative min-h-screen overflow-hidden bg-[#F7F4EA] px-3 py-5 text-[#242B26] sm:px-5 sm:py-7">
+      <div className="pointer-events-none absolute -left-32 -top-32 h-72 w-72 rounded-full bg-[#A8BDA5]/30 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-32 -right-24 h-80 w-80 rounded-full bg-[#D6A45D]/15 blur-3xl" />
 
-            <div className="text-left">
-              <p className="text-2xl font-extrabold tracking-tight text-slate-900">
+      <main className="relative mx-auto flex min-h-[calc(100vh-2.5rem)] w-full max-w-5xl flex-col justify-center">
+        {/* Brand */}
+        <div className="mb-5 text-center">
+          <Link to="/" className="inline-flex items-center gap-2.5">
+            <img
+              src="/logo.jpg"
+              alt="HomeBridge"
+              className="h-12 w-16 object-contain sm:h-14 sm:w-20"
+            />
+
+            <span className="text-left">
+              <span className="block text-2xl font-extrabold tracking-tight text-[#244B3C]">
                 HomeBridge
-              </p>
-
-              <p className="mt-1 text-xs font-medium text-slate-500">
+              </span>
+              <span className="block text-[9px] font-semibold uppercase tracking-[0.2em] text-[#8A795C]">
                 Find Your Space. Make It Home.
-              </p>
-            </div>
+              </span>
+            </span>
           </Link>
         </div>
 
-        {/* REGISTRATION CARD */}
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/60 sm:p-8 md:p-10">
-          {/* HEADING */}
-          <div className="mb-8">
-            <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-blue-700">
-              {step === 1 ? "Join HomeBridge" : "Email Verification"}
-            </p>
+        <div className="grid overflow-hidden rounded-2xl border border-[#E6E3D9] bg-white shadow-xl shadow-[#244B3C]/10 lg:grid-cols-[0.75fr_1.25fr]">
+          {/* Intro panel */}
+          <aside className="relative hidden flex-col justify-between overflow-hidden bg-[#244B3C] p-8 text-white lg:flex">
+            <div className="absolute -right-20 -top-20 h-60 w-60 rounded-full border-[35px] border-white/5" />
+            <div className="absolute -bottom-24 -left-20 h-64 w-64 rounded-full bg-[#527C61]/50 blur-2xl" />
 
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-              {step === 1 ? "Create your account" : "Verify your email"}
-            </h1>
-
-            <p className="mt-2 text-sm leading-6 text-slate-500 sm:text-base">
-              {step === 1
-                ? "Get started with HomeBridge and find the right space for you."
-                : "We have sent a 6-digit verification code to your email address."}
-            </p>
-          </div>
-
-          {/* STEP INDICATOR */}
-          <div className="mb-8 flex items-center gap-3">
-            <div className="flex flex-1 items-center gap-2">
-              <div
-                className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${
-                  step === 1
-                    ? "bg-blue-700 text-white"
-                    : "bg-green-600 text-white"
-                }`}
-              >
-                {step === 1 ? "1" : "✓"}
-              </div>
-
-              <span className="text-xs font-semibold text-slate-700 sm:text-sm">
-                Your Details
+            <div className="relative">
+              <span className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[10px] font-semibold tracking-wide text-[#E7EBDD]">
+                A better rental experience
               </span>
+
+              <h1 className="mt-7 text-4xl font-bold leading-tight">
+                Find your place.
+                <span className="mt-1 block text-[#D6A45D]">
+                  Build your future.
+                </span>
+              </h1>
+
+              <p className="mt-4 max-w-xs text-sm leading-7 text-[#E1E9DE]">
+                Whether you're finding a home or listing a property, HomeBridge
+                makes every step simpler and more connected.
+              </p>
             </div>
 
-            <div className="h-px flex-1 bg-slate-200" />
+            <div className="relative mt-10 rounded-xl border border-white/15 bg-white/10 p-4">
+              <p className="text-xs font-semibold text-white">
+                One platform. Two ways to get started.
+              </p>
 
-            <div className="flex flex-1 items-center justify-end gap-2">
-              <div
-                className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${
-                  step === 2
-                    ? "bg-blue-700 text-white"
-                    : "bg-slate-200 text-slate-500"
-                }`}
-              >
-                2
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <div className="rounded-lg bg-white/10 p-3">
+                  <Home size={21} className="text-[#D6A45D]" />
+                  <p className="mt-2 text-sm font-bold">Tenants</p>
+                  <p className="mt-0.5 text-[11px] text-[#DDE7DB]">
+                    Discover a home
+                  </p>
+                </div>
+
+                <div className="rounded-lg bg-white/10 p-3">
+                  <KeyRound size={21} className="text-[#D6A45D]" />
+                  <p className="mt-2 text-sm font-bold">Landlords</p>
+                  <p className="mt-0.5 text-[11px] text-[#DDE7DB]">
+                    List your property
+                  </p>
+                </div>
               </div>
-
-              <span className="text-xs font-semibold text-slate-700 sm:text-sm">
-                Email Verification
-              </span>
             </div>
-          </div>
 
-          {/* ERROR MESSAGE */}
-          {error && (
-            <div className="mb-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-              <span className="mt-0.5">⚠️</span>
-              <p>{error}</p>
+            <div className="relative mt-6 flex items-center gap-2 text-[11px] text-[#DDE7DB]">
+              <ShieldCheck size={15} className="text-[#D6A45D]" />
+              Simple, secure account registration
             </div>
-          )}
+          </aside>
 
-          {/* SUCCESS MESSAGE */}
-          {success && (
-            <div className="mb-6 flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-700">
-              <span className="mt-0.5">✓</span>
-              <p>{success}</p>
-            </div>
-          )}
+          {/* Form panel */}
+          <section className="p-5 sm:p-7 lg:p-8">
+            <div className="mx-auto max-w-xl">
+              <div className="mb-5">
+                <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-[#527C61]">
+                  {step === 1 ? "Join HomeBridge" : "Account security"}
+                </p>
 
-          {/* STEP 1: REGISTRATION FORM */}
-          {step === 1 && (
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* FULL NAME */}
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Full Name
-                </label>
+                <h2 className="text-2xl font-extrabold tracking-tight text-[#242B26] sm:text-3xl">
+                  {step === 1 ? "Create your account" : "Verify your email"}
+                </h2>
 
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                    👤
-                  </span>
-
-                  <input
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="Enter your full name"
-                    autoComplete="name"
-                    required
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-600/10"
-                  />
-                </div>
+                <p className="mt-1.5 text-xs leading-5 text-[#68756A] sm:text-sm">
+                  {step === 1
+                    ? "Enter your details to get started with a smoother rental experience."
+                    : "We've sent a 6-digit verification code to your email address."}
+                </p>
               </div>
 
-              {/* EMAIL + PHONE */}
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                {/* EMAIL */}
-                <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Email Address
-                  </label>
-
-                  <div className="relative">
-                    <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                      ✉
-                    </span>
-
-                    <input
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="you@example.com"
-                      type="email"
-                      autoComplete="email"
-                      required
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-600/10"
-                    />
-                  </div>
-                </div>
-
-                {/* PHONE */}
-                <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Phone Number
-                  </label>
-
-                  <div className="relative">
-                    <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                      ☎
-                    </span>
-
-                    <input
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      placeholder="Enter phone number"
-                      type="tel"
-                      autoComplete="tel"
-                      required
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-600/10"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* PASSWORD */}
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Password
-                </label>
-
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                    🔒
-                  </span>
-
-                  <input
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    placeholder="Create a password"
-                    type={showPassword ? "text" : "password"}
-                    autoComplete="new-password"
-                    required
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-12 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-600/10"
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-slate-400 transition hover:text-blue-700"
-                  >
-                    {showPassword ? "Hide" : "Show"}
-                  </button>
-                </div>
-              </div>
-
-              {/* CONFIRM PASSWORD */}
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Confirm Password
-                </label>
-
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                    🔐
-                  </span>
-
-                  <input
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    placeholder="Confirm your password"
-                    type={showConfirmPassword ? "text" : "password"}
-                    autoComplete="new-password"
-                    required
-                    className={`w-full rounded-xl border bg-slate-50 py-3.5 pl-11 pr-12 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-4 ${
-                      formData.confirmPassword &&
-                      formData.password !== formData.confirmPassword
-                        ? "border-red-300 focus:border-red-400 focus:ring-red-500/10"
-                        : "border-slate-200 focus:border-blue-600 focus:ring-blue-600/10"
-                    }`}
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-slate-400 transition hover:text-blue-700"
-                  >
-                    {showConfirmPassword ? "Hide" : "Show"}
-                  </button>
-                </div>
-
-                {formData.confirmPassword &&
-                  formData.password !== formData.confirmPassword && (
-                    <p className="mt-2 text-xs text-red-500">
-                      Passwords do not match
-                    </p>
-                  )}
-              </div>
-
-              {/* ROLE SELECTION */}
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  I want to register as a
-                </label>
-
-                <div className="grid grid-cols-2 gap-3">
-                  {/* TENANT */}
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        role: "tenant",
-                      }))
-                    }
-                    className={`rounded-xl border p-4 text-left transition ${
-                      formData.role === "tenant"
-                        ? "border-blue-600 bg-blue-50 ring-2 ring-blue-600/10"
-                        : "border-slate-200 bg-slate-50 hover:border-slate-300"
+              {/* Step indicator */}
+              <div className="mb-5 flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
+                      step === 1
+                        ? "bg-[#244B3C] text-white"
+                        : "bg-[#527C61] text-white"
                     }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`flex h-10 w-10 items-center justify-center rounded-lg ${
-                          formData.role === "tenant"
-                            ? "bg-blue-700 text-white"
-                            : "bg-white text-slate-500"
-                        }`}
-                      >
-                        🏠
-                      </div>
+                    {step === 1 ? "1" : <CheckCircle2 size={16} />}
+                  </span>
 
-                      <div>
-                        <p className="text-sm font-bold text-slate-900">
-                          Tenant
-                        </p>
+                  <span className="text-xs font-semibold text-[#37443A]">
+                    Your details
+                  </span>
+                </div>
 
-                        <p className="text-xs text-slate-500">
-                          Looking for a home
-                        </p>
-                      </div>
-                    </div>
-                  </button>
+                <div className="h-px flex-1 bg-[#E6E3D9]" />
 
-                  {/* LANDLORD */}
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        role: "landlord",
-                      }))
-                    }
-                    className={`rounded-xl border p-4 text-left transition ${
-                      formData.role === "landlord"
-                        ? "border-blue-600 bg-blue-50 ring-2 ring-blue-600/10"
-                        : "border-slate-200 bg-slate-50 hover:border-slate-300"
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
+                      step === 2
+                        ? "bg-[#244B3C] text-white"
+                        : "bg-[#F1F4EC] text-[#899489]"
                     }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`flex h-10 w-10 items-center justify-center rounded-lg ${
-                          formData.role === "landlord"
-                            ? "bg-blue-700 text-white"
-                            : "bg-white text-slate-500"
-                        }`}
-                      >
-                        🏢
-                      </div>
+                    2
+                  </span>
 
-                      <div>
-                        <p className="text-sm font-bold text-slate-900">
-                          Landlord
-                        </p>
-
-                        <p className="text-xs text-slate-500">
-                          Listing my property
-                        </p>
-                      </div>
-                    </div>
-                  </button>
+                  <span className="text-xs font-semibold text-[#37443A]">
+                    Verify email
+                  </span>
                 </div>
               </div>
 
-              {/* TERMS */}
-              <div className="flex items-start gap-3">
-                <input
-                  type="checkbox"
-                  required
-                  className="mt-1 h-4 w-4 rounded border-slate-300 text-blue-700 focus:ring-blue-600"
-                />
-
-                <p className="text-xs leading-5 text-slate-500">
-                  I agree to the{" "}
-                  <Link
-                    to="/terms"
-                    className="font-semibold text-blue-700 hover:text-blue-800"
-                  >
-                    Terms of Service
-                  </Link>{" "}
-                  and{" "}
-                  <Link
-                    to="/privacy"
-                    className="font-semibold text-blue-700 hover:text-blue-800"
-                  >
-                    Privacy Policy
-                  </Link>
-                  .
-                </p>
-              </div>
-
-              {/* SEND OTP BUTTON */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="group flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-blue-800 to-blue-600 py-3.5 font-semibold text-white shadow-lg shadow-blue-700/20 transition hover:-translate-y-0.5 hover:from-blue-700 hover:to-blue-500 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
-              >
-                {loading ? (
-                  <>
-                    <span className="mr-3 h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                    Sending Verification Code...
-                  </>
-                ) : (
-                  <>
-                    Send Verification Code
-                    <span className="ml-2 transition-transform group-hover:translate-x-1">
-                      →
-                    </span>
-                  </>
-                )}
-              </button>
-            </form>
-          )}
-
-          {/* STEP 2: OTP VERIFICATION */}
-          {step === 2 && (
-            <form onSubmit={handleVerifyOTP} className="space-y-6">
-              {/* EMAIL INFORMATION */}
-              <div className="rounded-xl border border-blue-100 bg-blue-50 p-5 text-center">
-                <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-blue-100 text-2xl">
-                  ✉
-                </div>
-
-                <p className="text-sm font-medium text-slate-600">
-                  Verification code sent to
-                </p>
-
-                <p className="mt-1 break-all text-base font-bold text-slate-900">
-                  {maskedEmail(formData.email)}
-                </p>
-              </div>
-
-              {/* OTP INPUT */}
-              <div>
-                <label className="mb-3 block text-center text-sm font-semibold text-slate-700">
-                  Enter 6-Digit Verification Code
-                </label>
-
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  maxLength={6}
-                  value={otp}
-                  onChange={(e) => {
-                    setOtp(e.target.value.replace(/\D/g, "").slice(0, 6));
-                    setError("");
-                    setSuccess("");
-                  }}
-                  placeholder="000000"
-                  autoFocus
-                  required
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-5 text-center text-3xl font-bold tracking-[0.5em] text-slate-900 outline-none transition placeholder:text-slate-300 focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-600/10"
-                />
-
-                <p className="mt-3 text-center text-xs text-slate-500">
-                  Enter the verification code received in your email.
-                </p>
-              </div>
-
-              {/* VERIFY BUTTON */}
-              <button
-                type="submit"
-                disabled={loading || otp.length !== 6}
-                className="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-blue-800 to-blue-600 py-3.5 font-semibold text-white shadow-lg shadow-blue-700/20 transition hover:-translate-y-0.5 hover:from-blue-700 hover:to-blue-500 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
-              >
-                {loading ? (
-                  <>
-                    <span className="mr-3 h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                    Verifying Email...
-                  </>
-                ) : (
-                  "Verify & Create Account"
-                )}
-              </button>
-
-              {/* RESEND OTP */}
-              <div className="text-center">
-                <p className="text-sm text-slate-500">
-                  Didn't receive the verification code?
-                </p>
-
-                <button
-                  type="button"
-                  onClick={handleResendOTP}
-                  disabled={resending || loading}
-                  className="mt-2 font-semibold text-blue-700 transition hover:text-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
+              {/* Error */}
+              {error && (
+                <div
+                  role="alert"
+                  className="mb-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700"
                 >
-                  {resending ? "Sending..." : "Resend Verification Code"}
-                </button>
+                  <span>⚠</span>
+                  <p>{error}</p>
+                </div>
+              )}
+
+              {/* Success */}
+              {success && (
+                <div
+                  role="status"
+                  className="mb-4 flex items-start gap-2 rounded-lg border border-[#C9DCC8] bg-[#F1F7EF] p-3 text-xs text-[#315C3D]"
+                >
+                  <CheckCircle2 size={15} className="shrink-0" />
+                  <p>{success}</p>
+                </div>
+              )}
+
+              {/* Registration form */}
+              {step === 1 && (
+                <form onSubmit={handleSubmit} className="space-y-3.5">
+                  <div>
+                    <label htmlFor="register-name" className={labelClass}>
+                      Full name
+                    </label>
+
+                    <div className="relative">
+                      <UserRound
+                        size={16}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-[#899489]"
+                      />
+
+                      <input
+                        id="register-name"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        placeholder="Enter your full name"
+                        autoComplete="name"
+                        required
+                        className={inputClass}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="register-email" className={labelClass}>
+                        Email address
+                      </label>
+
+                      <div className="relative">
+                        <Mail
+                          size={16}
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-[#899489]"
+                        />
+
+                        <input
+                          id="register-email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleChange}
+                          placeholder="you@example.com"
+                          type="email"
+                          autoComplete="email"
+                          required
+                          className={inputClass}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="register-phone" className={labelClass}>
+                        Phone number
+                      </label>
+
+                      <div className="relative">
+                        <Phone
+                          size={16}
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-[#899489]"
+                        />
+
+                        <input
+                          id="register-phone"
+                          name="phone"
+                          value={formData.phone}
+                          onChange={handleChange}
+                          placeholder="Enter phone number"
+                          type="tel"
+                          autoComplete="tel"
+                          required
+                          className={inputClass}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="register-password" className={labelClass}>
+                      Password
+                    </label>
+
+                    <div className="relative">
+                      <LockKeyhole
+                        size={16}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-[#899489]"
+                      />
+
+                      <input
+                        id="register-password"
+                        name="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        placeholder="Create a password"
+                        type={showPassword ? "text" : "password"}
+                        autoComplete="new-password"
+                        minLength={6}
+                        required
+                        className={`${inputClass} pr-14`}
+                      />
+
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((value) => !value)}
+                        aria-label={
+                          showPassword ? "Hide password" : "Show password"
+                        }
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#527C61] hover:text-[#193A2E]"
+                      >
+                        {showPassword ? (
+                          <EyeOff size={16} />
+                        ) : (
+                          <Eye size={16} />
+                        )}
+                      </button>
+                    </div>
+
+                    <p className="mt-1 text-[10px] text-[#899489]">
+                      Minimum 6 characters.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="register-confirm-password"
+                      className={labelClass}
+                    >
+                      Confirm password
+                    </label>
+
+                    <div className="relative">
+                      <LockKeyhole
+                        size={16}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-[#899489]"
+                      />
+
+                      <input
+                        id="register-confirm-password"
+                        name="confirmPassword"
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                        placeholder="Confirm your password"
+                        type={showConfirmPassword ? "text" : "password"}
+                        autoComplete="new-password"
+                        required
+                        className={`w-full rounded-lg border bg-[#FAFAF6] py-2.5 pl-10 pr-10 text-sm text-[#242B26] outline-none transition placeholder:text-[#899489] focus:bg-white focus:ring-2 ${
+                          formData.confirmPassword &&
+                          formData.password !== formData.confirmPassword
+                            ? "border-red-300 focus:border-red-400 focus:ring-red-500/10"
+                            : "border-[#E6E3D9] focus:border-[#527C61] focus:ring-[#A8BDA5]/25"
+                        }`}
+                      />
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowConfirmPassword((value) => !value)
+                        }
+                        aria-label={
+                          showConfirmPassword
+                            ? "Hide confirm password"
+                            : "Show confirm password"
+                        }
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#527C61] hover:text-[#193A2E]"
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff size={16} />
+                        ) : (
+                          <Eye size={16} />
+                        )}
+                      </button>
+                    </div>
+
+                    {formData.confirmPassword &&
+                      formData.password !== formData.confirmPassword && (
+                        <p className="mt-1 text-[10px] text-red-600">
+                          Passwords do not match.
+                        </p>
+                      )}
+                  </div>
+
+                  {/* Role selection */}
+                  <div>
+                    <p className={labelClass}>Register as a</p>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            role: "tenant",
+                          }))
+                        }
+                        aria-pressed={formData.role === "tenant"}
+                        className={`rounded-lg border p-3 text-left transition ${
+                          formData.role === "tenant"
+                            ? "border-[#527C61] bg-[#F1F4EC] ring-1 ring-[#A8BDA5]/50"
+                            : "border-[#E6E3D9] bg-white hover:border-[#A8BDA5]"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`flex h-9 w-9 items-center justify-center rounded-lg ${
+                              formData.role === "tenant"
+                                ? "bg-[#244B3C] text-white"
+                                : "bg-[#F1F4EC] text-[#527C61]"
+                            }`}
+                          >
+                            <Home size={18} />
+                          </span>
+
+                          <span>
+                            <span className="block text-xs font-bold text-[#242B26]">
+                              Tenant
+                            </span>
+                            <span className="mt-0.5 block text-[10px] text-[#68756A]">
+                              Looking for a home
+                            </span>
+                          </span>
+
+                          {formData.role === "tenant" && (
+                            <CheckCircle2
+                              size={15}
+                              className="ml-auto text-[#527C61]"
+                            />
+                          )}
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            role: "landlord",
+                          }))
+                        }
+                        aria-pressed={formData.role === "landlord"}
+                        className={`rounded-lg border p-3 text-left transition ${
+                          formData.role === "landlord"
+                            ? "border-[#527C61] bg-[#F1F4EC] ring-1 ring-[#A8BDA5]/50"
+                            : "border-[#E6E3D9] bg-white hover:border-[#A8BDA5]"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`flex h-9 w-9 items-center justify-center rounded-lg ${
+                              formData.role === "landlord"
+                                ? "bg-[#244B3C] text-white"
+                                : "bg-[#F1F4EC] text-[#527C61]"
+                            }`}
+                          >
+                            <KeyRound size={18} />
+                          </span>
+
+                          <span>
+                            <span className="block text-xs font-bold text-[#242B26]">
+                              Landlord
+                            </span>
+                            <span className="mt-0.5 block text-[10px] text-[#68756A]">
+                              Listing my property
+                            </span>
+                          </span>
+
+                          {formData.role === "landlord" && (
+                            <CheckCircle2
+                              size={15}
+                              className="ml-auto text-[#527C61]"
+                            />
+                          )}
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Terms */}
+                  <label className="flex items-start gap-2">
+                    <input
+                      type="checkbox"
+                      required
+                      className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-[#244B3C]"
+                    />
+
+                    <span className="text-[10px] leading-5 text-[#68756A]">
+                      I agree to the{" "}
+                      <Link
+                        to="/terms"
+                        className="font-semibold text-[#244B3C] hover:underline"
+                      >
+                        Terms of Service
+                      </Link>{" "}
+                      and{" "}
+                      <Link
+                        to="/privacy"
+                        className="font-semibold text-[#244B3C] hover:underline"
+                      >
+                        Privacy Policy
+                      </Link>
+                      .
+                    </span>
+                  </label>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="group flex w-full items-center justify-center gap-2 rounded-lg bg-[#244B3C] py-3 text-sm font-semibold text-white shadow-md shadow-[#244B3C]/15 transition hover:bg-[#193A2E] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {loading ? (
+                      <>
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                        Sending verification code...
+                      </>
+                    ) : (
+                      <>
+                        Send verification code
+                        <ArrowRight
+                          size={16}
+                          className="transition-transform group-hover:translate-x-1"
+                        />
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
+
+              {/* OTP verification */}
+              {step === 2 && (
+                <form onSubmit={handleVerifyOTP} className="space-y-4">
+                  <div className="rounded-xl border border-[#DCE6D9] bg-[#F1F4EC] p-4 text-center">
+                    <div className="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#527C61] shadow-sm">
+                      <Mail size={20} />
+                    </div>
+
+                    <p className="text-xs text-[#68756A]">
+                      Verification code sent to
+                    </p>
+
+                    <p className="mt-1 break-all text-sm font-bold text-[#244B3C]">
+                      {maskedEmail(formData.email)}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="register-otp"
+                      className="mb-2 block text-center text-xs font-semibold text-[#37443A]"
+                    >
+                      Enter your 6-digit verification code
+                    </label>
+
+                    <input
+                      id="register-otp"
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      maxLength={6}
+                      value={otp}
+                      onChange={(e) => {
+                        setOtp(e.target.value.replace(/\D/g, "").slice(0, 6));
+                        setError("");
+                        setSuccess("");
+                      }}
+                      placeholder="000000"
+                      autoFocus
+                      required
+                      className="w-full rounded-lg border border-[#E6E3D9] bg-[#FAFAF6] px-4 py-4 text-center text-2xl font-bold tracking-[0.5em] text-[#244B3C] outline-none transition placeholder:text-[#C8D4C6] focus:border-[#527C61] focus:bg-white focus:ring-2 focus:ring-[#A8BDA5]/25"
+                    />
+
+                    <p className="mt-2 text-center text-[10px] text-[#899489]">
+                      Enter the code received in your email.
+                    </p>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading || otp.length !== 6}
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#244B3C] py-3 text-sm font-semibold text-white shadow-md shadow-[#244B3C]/15 transition hover:bg-[#193A2E] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {loading ? (
+                      <>
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                        Verifying email...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 size={16} />
+                        Verify & Create Account
+                      </>
+                    )}
+                  </button>
+
+                  <div className="text-center">
+                    <p className="text-xs text-[#68756A]">
+                      Didn't receive the verification code?
+                    </p>
+
+                    <button
+                      type="button"
+                      onClick={handleResendOTP}
+                      disabled={resending || loading}
+                      className="mt-1.5 text-xs font-semibold text-[#244B3C] transition hover:text-[#193A2E] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {resending ? "Sending..." : "Resend verification code"}
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStep(1);
+                      setOtp("");
+                      setError("");
+                      setSuccess("");
+                    }}
+                    disabled={loading || resending}
+                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#E6E3D9] bg-white py-2.5 text-xs font-semibold text-[#526056] transition hover:bg-[#F7F4EA] disabled:opacity-50"
+                  >
+                    <ArrowLeft size={14} />
+                    Back to registration details
+                  </button>
+                </form>
+              )}
+
+              <div className="mt-5 border-t border-[#EEECE4] pt-4 text-center">
+                <p className="text-xs text-[#68756A]">
+                  Already part of HomeBridge?{" "}
+                  <Link
+                    to="/login"
+                    className="font-bold text-[#244B3C] transition hover:text-[#193A2E]"
+                  >
+                    Sign in
+                  </Link>
+                </p>
               </div>
-
-              {/* BACK BUTTON */}
-              <button
-                type="button"
-                onClick={() => {
-                  setStep(1);
-                  setOtp("");
-                  setError("");
-                  setSuccess("");
-                }}
-                disabled={loading || resending}
-                className="flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white py-3 font-semibold text-slate-600 transition hover:bg-slate-50 disabled:opacity-50"
-              >
-                ← Back to Registration Details
-              </button>
-            </form>
-          )}
-
-          {/* LOGIN */}
-          <div className="mt-7 border-t border-slate-100 pt-6 text-center">
-            <p className="text-sm text-slate-500">
-              Already part of HomeBridge?{" "}
-              <Link
-                to="/login"
-                className="font-semibold text-blue-700 transition hover:text-blue-800"
-              >
-                Sign in
-              </Link>
-            </p>
-          </div>
+            </div>
+          </section>
         </div>
 
-        {/* FOOTER */}
-        <p className="mt-6 text-center text-xs text-slate-400">
+        <p className="mt-4 text-center text-[10px] text-[#899489]">
           © {new Date().getFullYear()} HomeBridge. All rights reserved.
         </p>
-      </div>
+      </main>
     </div>
   );
 };
