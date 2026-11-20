@@ -108,6 +108,13 @@ const Home = () => {
     }
   };
 
+  const scrollToProperties = () => {
+  document.getElementById("available-properties")?.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
+};
+
   return (
     <div className="min-h-screen bg-[#F7F4EA] text-[#242B26]">
       {/* ================= HERO ================= */}
@@ -140,15 +147,16 @@ const Home = () => {
             </p>
 
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <Link
-                to="/properties"
-                className="group inline-flex items-center justify-center rounded-xl bg-[#244B3C] px-7 py-3.5 font-semibold text-white shadow-lg shadow-[#244B3C]/20 transition hover:-translate-y-0.5 hover:bg-[#193A2E] focus:outline-none focus:ring-2 focus:ring-[#527C61] focus:ring-offset-2"
-              >
-                Explore Properties
-                <span className="ml-2 transition-transform group-hover:translate-x-1">
-                  →
-                </span>
-              </Link>
+              <button
+  type="button"
+  onClick={scrollToProperties}
+  className="group inline-flex items-center justify-center rounded-xl bg-[#244B3C] px-7 py-3.5 font-semibold text-white shadow-lg shadow-[#244B3C]/20 transition hover:-translate-y-0.5 hover:bg-[#193A2E] focus:outline-none focus:ring-2 focus:ring-[#527C61] focus:ring-offset-2"
+>
+  Explore Properties
+  <span className="ml-2 transition-transform group-hover:translate-x-1">
+    →
+  </span>
+</button>
 
               <Link
                 to="/register"
@@ -213,7 +221,7 @@ const Home = () => {
       </section>
 
       {/* ================= PROPERTY SECTION ================= */}
-      <section className="mx-auto max-w-7xl px-6 py-20 lg:px-8">
+      <section  id="available-properties" className="mx-auto max-w-7xl px-6 py-20 lg:px-8">
         <div className="mb-10 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
             <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-[#244B3C]">
