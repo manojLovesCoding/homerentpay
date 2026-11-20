@@ -289,15 +289,20 @@ export const removeTenant = async (req, res) => {
 
 export const getAssignedTenants = async (req, res) => {
   try {
-    const properties = await Property.find({
-      landlord: req.user.id,
-      status: "rented",
-    })
+    const filter =
+      req.user.role === "admin"
+        ? { status: "rented" }
+        : {
+            landlord: req.user.id,
+            status: "rented",
+          };
+
+    const properties = await Property.find(filter)
       .populate({
         path: "tenant",
         select: "name email phone isActive",
       })
-      .select("title address city rent status tenant");
+      .select("title address city rent status tenant dueDate");
 
     res.status(200).json({
       success: true,
