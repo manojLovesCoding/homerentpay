@@ -1,6 +1,5 @@
 import { Router } from "express";
 import {
-  register,
   login,
   createTenant,
   getTenants,
@@ -16,11 +15,19 @@ import {
 } from "../controllers/authController.js";
 import { verifyToken } from "../middleware/auth.js";
 import { authorizeRoles } from "../middleware/role.js";
+import {
+  sendRegistrationOTPController,
+  verifyRegistrationOTP,
+} from "../controllers/registrationController.js";
 //import { protect } from "../middleware/auth.js";
 
 const authRouter = Router();
 
-authRouter.post("/register", register);
+// SEND REGISTRATION OTP
+authRouter.post("/send-registration-otp", sendRegistrationOTPController);
+
+// VERIFY OTP AND COMPLETE REGISTRATION
+authRouter.post("/verify-registration-otp", verifyRegistrationOTP);
 authRouter.post("/login", login);
 authRouter.post(
   "/create-tenant",
@@ -29,12 +36,7 @@ authRouter.post(
   createTenant,
 );
 
-authRouter.get(
-  "/users",
-  verifyToken,
-  authorizeRoles("admin"),
-  getUsers
-);
+authRouter.get("/users", verifyToken, authorizeRoles("admin"), getUsers);
 
 authRouter.get(
   "/tenants",
@@ -63,13 +65,12 @@ authRouter.put(
   updateTenantPassword,
 );
 
-
 // ADMIN - CREATE LANDLORD
 authRouter.post(
   "/create-landlord",
   verifyToken,
   authorizeRoles("admin"),
-  createLandlord
+  createLandlord,
 );
 
 // ADMIN - GET ALL LANDLORDS
@@ -77,7 +78,7 @@ authRouter.get(
   "/landlords",
   verifyToken,
   authorizeRoles("admin"),
-  getLandlords
+  getLandlords,
 );
 
 // ADMIN - UPDATE LANDLORD
@@ -85,7 +86,7 @@ authRouter.put(
   "/landlord/:id",
   verifyToken,
   authorizeRoles("admin"),
-  updateLandlord
+  updateLandlord,
 );
 
 // ADMIN - DEACTIVATE LANDLORD
@@ -93,7 +94,7 @@ authRouter.patch(
   "/landlord/:id/deactivate",
   verifyToken,
   authorizeRoles("admin"),
-  deactivateLandlord
+  deactivateLandlord,
 );
 
 // ADMIN - UPDATE LANDLORD PASSWORD
@@ -101,8 +102,7 @@ authRouter.put(
   "/landlord/:id/password",
   verifyToken,
   authorizeRoles("admin"),
-  updateLandlordPassword
+  updateLandlordPassword,
 );
-
 
 export default authRouter;
