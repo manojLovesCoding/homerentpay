@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-hot-toast";
@@ -14,7 +15,6 @@ const Home = () => {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Inquiry modal state
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [formData, setFormData] = useState(initialFormData);
   const [submitting, setSubmitting] = useState(false);
@@ -34,7 +34,6 @@ const Home = () => {
     fetchProperties();
   }, []);
 
-  // Prevent homepage scrolling while inquiry modal is open
   useEffect(() => {
     if (selectedProperty) {
       document.body.style.overflow = "hidden";
@@ -47,13 +46,11 @@ const Home = () => {
     };
   }, [selectedProperty]);
 
-  // Open inquiry modal
   const openInquiryModal = (property) => {
     setSelectedProperty(property);
     setFormData(initialFormData);
   };
 
-  // Close inquiry modal
   const closeInquiryModal = () => {
     if (submitting) return;
 
@@ -61,7 +58,6 @@ const Home = () => {
     setFormData(initialFormData);
   };
 
-  // Handle form inputs
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
@@ -71,7 +67,6 @@ const Home = () => {
     }));
   };
 
-  // Submit inquiry
   const handleInquirySubmit = async (e) => {
     e.preventDefault();
 
@@ -107,7 +102,7 @@ const Home = () => {
 
       toast.error(
         err.response?.data?.message ||
-          "Unable to submit your inquiry. Please try again.",
+          "Unable to submit your inquiry. Please try again."
       );
     } finally {
       setSubmitting(false);
@@ -205,7 +200,7 @@ const Home = () => {
           </Link>
         </div>
 
-        {/* ================= LOADING ================= */}
+        {/* Loading */}
         {loading ? (
           <div className="grid grid-cols-1 gap-7 md:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3].map((item) => (
@@ -225,7 +220,7 @@ const Home = () => {
             ))}
           </div>
         ) : properties.length === 0 ? (
-          /* ================= EMPTY STATE ================= */
+          /* Empty State */
           <div className="rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-20 text-center">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-3xl">
               🏠
@@ -240,7 +235,7 @@ const Home = () => {
             </p>
           </div>
         ) : (
-          /* ================= PROPERTY CARDS ================= */
+          /* Property Cards */
           <div className="grid grid-cols-1 gap-7 md:grid-cols-2 lg:grid-cols-3">
             {properties.map((property) => (
               <div
@@ -534,7 +529,18 @@ const Home = () => {
       {/* ================= FOOTER ================= */}
       <footer className="border-t border-slate-200 bg-white">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-8 text-sm text-slate-500 sm:flex-row lg:px-8">
-          <p>© 2026 Vayuhu - Rental Management System</p>
+          <div className="space-y-2 text-center sm:text-left">
+            <p>
+              © 2026 HomeBridge. All rights reserved.
+            </p>
+
+            <p>
+              Designed and Developed by{" "}
+              <span className="font-bold text-slate-700">
+                Manoj Kumar P V
+              </span>
+            </p>
+          </div>
 
           <div className="flex gap-6">
             <Link to="/login" className="transition hover:text-blue-600">
