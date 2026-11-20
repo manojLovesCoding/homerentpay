@@ -2,50 +2,6 @@ import User from "../models/User.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-export const register = async (req, res) => {
-  try {
-    const { name, email, phone, password, role } = req.body;
-
-    const user = await User.findOne({
-      $or: [{ email }, { phone }],
-    });
-
-    if (user) {
-      return res.status(400).json({
-        success: false,
-        message: "User already exists",
-      });
-    }
-
-    const hashPassword = await bcrypt.hash(password, 10);
-
-    const newUser = await User.create({
-      name,
-      email,
-      phone,
-      password: hashPassword,
-      role,
-    });
-
-    res.status(201).json({
-      success: true,
-      message: "Registration Successful",
-      user: {
-        id: newUser._id,
-        name: newUser.name,
-        email: newUser.email,
-        phone: newUser.phone,
-        role: newUser.role,
-      },
-    });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      message: err.message,
-    });
-  }
-};
-
 export const login = async (req, res) => {
   try {
     const { email, password, role } = req.body;
