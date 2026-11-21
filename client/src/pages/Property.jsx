@@ -43,9 +43,8 @@ const Property = () => {
     };
   }, [selectedProperty]);
 
-  
-
   const openInquiryModal = (property) => {
+    if (property.status === "rented") return;
     setSelectedProperty(property);
     setFormData(initialFormData);
   };
@@ -112,15 +111,15 @@ const Property = () => {
             Find your next home
           </p>
           <h1 className="mt-3 text-4xl font-extrabold tracking-tight sm:text-5xl">
-            Available Properties
+            Rental Properties
           </h1>
           <p className="mt-4 max-w-2xl leading-7 text-white/75">
-            Explore our available rental properties and find a place that feels
-            right for you.
+            Explore our rental properties and find a place that feels right for
+            you.
           </p>
           <p className="mt-5 text-sm font-medium text-[#E5EBDD]">
             {totalProperties}{" "}
-            {totalProperties === 1 ? "property" : "properties"} available
+            {totalProperties === 1 ? "property" : "properties"} listed
           </p>
         </div>
       </section>
@@ -176,66 +175,81 @@ const Property = () => {
               </p>
             </div>
             <div className="grid grid-cols-1 gap-7 md:grid-cols-2 lg:grid-cols-3">
-              {properties.map((property) => (
-                <article
-                  key={property._id}
-                  className="group overflow-hidden rounded-2xl border border-[#E6E3D9] bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
-                >
-                  <div className="relative h-60 overflow-hidden bg-[#E9E8DD]">
-                    {property.image ? (
-                      <img
-                        src={property.image}
-                        alt={property.title}
-                        loading="lazy"
-                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center bg-gradient-to-br from-[#F7F4EA] to-[#E9E8DD] text-5xl">
-                        🏠
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                    <span className="absolute left-4 top-4 rounded-full bg-[#527C61] px-3 py-1.5 text-xs font-semibold text-white shadow-lg">
-                      Available
-                    </span>
-                    <p className="absolute bottom-4 left-4 text-2xl font-bold text-white drop-shadow-lg">
-                      ₹{Number(property.rent || 0).toLocaleString("en-IN")}
-                      <span className="text-sm font-normal text-white/80">
-                        {" "}
-                        / month
-                      </span>
-                    </p>
-                  </div>
-                  <div className="p-6">
-                    <h3 className="line-clamp-1 text-xl font-bold">
-                      {property.title}
-                    </h3>
-                    <div className="mt-3 flex items-start gap-2 text-sm text-[#68756A]">
-                      <span>📍</span>
-                      <div>
-                        <p>{property.address}</p>
-                        <p className="mt-1 text-[#899489]">{property.city}</p>
-                      </div>
-                    </div>
-                    <div className="my-5 border-t border-[#EEECE4]" />
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <span className="flex items-center gap-2 text-sm text-[#68756A]">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F1F4EC]">
-                          🏡
-                        </span>
-                        Rental Property
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => openInquiryModal(property)}
-                        className="rounded-lg bg-[#244B3C] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#193A2E] focus:outline-none focus:ring-2 focus:ring-[#527C61] focus:ring-offset-2"
+              {properties.map((property) => {
+                const isRented = property.status === "rented";
+
+                return (
+                  <article
+                    key={property._id}
+                    className="group overflow-hidden rounded-2xl border border-[#E6E3D9] bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+                  >
+                    <div className="relative h-60 overflow-hidden bg-[#E9E8DD]">
+                      {property.image ? (
+                        <img
+                          src={property.image}
+                          alt={property.title}
+                          loading="lazy"
+                          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center bg-gradient-to-br from-[#F7F4EA] to-[#E9E8DD] text-5xl">
+                          🏠
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+
+                      {/* Badge: Available when vacant, Occupied when rented */}
+                      <span
+                        className={`absolute left-4 top-4 rounded-full px-3 py-1.5 text-xs font-semibold text-white shadow-lg ${
+                          isRented ? "bg-[#A47A3F]" : "bg-[#527C61]"
+                        }`}
                       >
-                        Inquiry
-                      </button>
+                        {isRented ? "Occupied" : "Available"}
+                      </span>
+
+                      <p className="absolute bottom-4 left-4 text-2xl font-bold text-white drop-shadow-lg">
+                        ₹{Number(property.rent || 0).toLocaleString("en-IN")}
+                        <span className="text-sm font-normal text-white/80">
+                          {" "}
+                          / month
+                        </span>
+                      </p>
                     </div>
-                  </div>
-                </article>
-              ))}
+                    <div className="p-6">
+                      <h3 className="line-clamp-1 text-xl font-bold">
+                        {property.title}
+                      </h3>
+                      <div className="mt-3 flex items-start gap-2 text-sm text-[#68756A]">
+                        <span>📍</span>
+                        <div>
+                          <p>{property.address}</p>
+                          <p className="mt-1 text-[#899489]">{property.city}</p>
+                        </div>
+                      </div>
+                      <div className="my-5 border-t border-[#EEECE4]" />
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <span className="flex items-center gap-2 text-sm text-[#68756A]">
+                          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F1F4EC]">
+                            🏡
+                          </span>
+                          Rental Property
+                        </span>
+
+                        {/* Inquiry button is hidden for rented properties */}
+                        {!isRented && (
+                          <button
+                            type="button"
+                            onClick={() => openInquiryModal(property)}
+                            className="rounded-lg bg-[#244B3C] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#193A2E] focus:outline-none focus:ring-2 focus:ring-[#527C61] focus:ring-offset-2"
+                          >
+                            Inquiry
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
 
             {totalPages > 1 && (

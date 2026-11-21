@@ -74,7 +74,7 @@ export const getHomeProperties = async (req, res) => {
     const properties = await Property.find()
       .sort({ createdAt: -1 })
       .limit(6)
-      .select("title address city rent image");
+      .select("title address city rent image status");
 
     res.status(200).json({
       success: true,
@@ -107,7 +107,7 @@ export const getPublicProperties = async (req, res) => {
       .sort({ createdAt: -1 })
       .skip((currentPage - 1) * limit)
       .limit(limit)
-      .select("title address city rent image");
+      .select("title address city rent image status");
 
     res.status(200).json({
       success: true,

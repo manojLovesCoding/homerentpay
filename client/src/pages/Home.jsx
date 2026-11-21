@@ -46,6 +46,9 @@ const Home = () => {
   }, [selectedProperty]);
 
   const openInquiryModal = (property) => {
+    // Occupied properties cannot receive inquiries
+    if (property.status === "rented") return;
+
     setSelectedProperty(property);
     setFormData(initialFormData);
   };
@@ -221,7 +224,7 @@ const Home = () => {
             </p>
 
             <h2 className="text-3xl font-bold tracking-tight text-[#242B26] sm:text-4xl">
-              Available Properties
+              Rental Properties
             </h2>
 
             <p className="mt-3 text-[#68756A]">
@@ -274,83 +277,94 @@ const Home = () => {
         ) : (
           /* Property Cards */
           <div className="grid grid-cols-1 gap-7 md:grid-cols-2 lg:grid-cols-3">
-            {properties.map((property) => (
-              <div
-                key={property._id}
-                className="group overflow-hidden rounded-2xl border border-[#E6E3D9] bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-[#D9DED3] hover:shadow-xl"
-              >
-                {/* Image */}
-                <div className="relative h-60 overflow-hidden bg-[#E9E8DD]">
-                  {property.image ? (
-                    <img
-                      src={property.image}
-                      alt={property.title}
-                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center bg-gradient-to-br from-[#F7F4EA] to-[#E9E8DD] text-5xl">
-                      🏠
+            {properties.map((property) => {
+              const isRented = property.status === "rented";
+
+              return (
+                <div
+                  key={property._id}
+                  className="group overflow-hidden rounded-2xl border border-[#E6E3D9] bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-[#D9DED3] hover:shadow-xl"
+                >
+                  {/* Image */}
+                  <div className="relative h-60 overflow-hidden bg-[#E9E8DD]">
+                    {property.image ? (
+                      <img
+                        src={property.image}
+                        alt={property.title}
+                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center bg-gradient-to-br from-[#F7F4EA] to-[#E9E8DD] text-5xl">
+                        🏠
+                      </div>
+                    )}
+
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-70" />
+
+                    {/* Availability badge */}
+                    <div className="absolute left-4 top-4">
+                      <span
+                        className={`rounded-full px-3 py-1.5 text-xs font-semibold text-white shadow-lg ${
+                          isRented ? "bg-[#A47A3F]" : "bg-[#527C61]"
+                        }`}
+                      >
+                        {isRented ? "Occupied" : "Available"}
+                      </span>
                     </div>
-                  )}
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-70" />
-
-                  {/* Availability badge */}
-                  <div className="absolute left-4 top-4">
-                    <span className="rounded-full bg-[#527C61] px-3 py-1.5 text-xs font-semibold text-white shadow-lg">
-                      Available
-                    </span>
+                    {/* Price */}
+                    <div className="absolute bottom-4 left-4">
+                      <p className="text-2xl font-bold text-white drop-shadow-lg">
+                        ₹{Number(property.rent || 0).toLocaleString("en-IN")}
+                        <span className="text-sm font-normal text-white/80">
+                          {" "}
+                          / month
+                        </span>
+                      </p>
+                    </div>
                   </div>
 
-                  {/* Price */}
-                  <div className="absolute bottom-4 left-4">
-                    <p className="text-2xl font-bold text-white drop-shadow-lg">
-                      ₹{property.rent}
-                      <span className="text-sm font-normal text-white/80">
-                        {" "}
-                        / month
-                      </span>
-                    </p>
+                  {/* Content */}
+                  <div className="p-6">
+                    <h3 className="line-clamp-1 text-xl font-bold text-[#242B26]">
+                      {property.title}
+                    </h3>
+
+                    <div className="mt-3 flex items-start gap-2 text-sm text-[#68756A]">
+                      <span className="mt-0.5">📍</span>
+
+                      <div>
+                        <p>{property.address}</p>
+                        <p className="mt-1 text-[#899489]">{property.city}</p>
+                      </div>
+                    </div>
+
+                    <div className="my-5 border-t border-[#EEECE4]" />
+
+                    {/* Bottom */}
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex items-center gap-2 text-sm text-[#68756A]">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F1F4EC]">
+                          🏡
+                        </span>
+                        Rental Property
+                      </div>
+
+                      {/* Inquiry button is hidden for occupied properties */}
+                      {!isRented && (
+                        <button
+                          type="button"
+                          onClick={() => openInquiryModal(property)}
+                          className="rounded-lg bg-[#244B3C] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#193A2E] focus:outline-none focus:ring-2 focus:ring-[#527C61] focus:ring-offset-2"
+                        >
+                          Inquiry
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-
-                {/* Content */}
-                <div className="p-6">
-                  <h3 className="line-clamp-1 text-xl font-bold text-[#242B26]">
-                    {property.title}
-                  </h3>
-
-                  <div className="mt-3 flex items-start gap-2 text-sm text-[#68756A]">
-                    <span className="mt-0.5">📍</span>
-
-                    <div>
-                      <p>{property.address}</p>
-                      <p className="mt-1 text-[#899489]">{property.city}</p>
-                    </div>
-                  </div>
-
-                  <div className="my-5 border-t border-[#EEECE4]" />
-
-                  {/* Bottom */}
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-center gap-2 text-sm text-[#68756A]">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F1F4EC]">
-                        🏡
-                      </span>
-                      Rental Property
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => openInquiryModal(property)}
-                      className="rounded-lg bg-[#244B3C] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#193A2E] focus:outline-none focus:ring-2 focus:ring-[#527C61] focus:ring-offset-2"
-                    >
-                      Inquiry
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -421,7 +435,7 @@ const Home = () => {
               </p>
 
               <p className="mt-2 font-bold text-[#193A2E]">
-                ₹{selectedProperty.rent}
+                ₹{Number(selectedProperty.rent || 0).toLocaleString("en-IN")}
                 <span className="text-sm font-normal text-[#68756A]">
                   {" "}
                   / month
