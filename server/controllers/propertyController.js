@@ -73,14 +73,53 @@ export const getHomeProperties = async (req, res) => {
   try {
     const properties = await Property.find()
       .sort({ createdAt: -1 })
+      .limit(6)
       .select("title address city rent image");
 
-    res.json({
+    res.status(200).json({
       success: true,
       properties,
     });
   } catch (err) {
     res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+// Public property listing with pagination
+export const getPublicProperties = async (req, res) => {
+  try {
+    const requestedPage = Math.max(1, parseInt(req.query.page, 10) || 1);
+
+    const limit = 9;
+
+    const totalProperties = await Property.countDocuments();
+
+    const totalPages = Math.ceil(totalProperties / limit);
+
+    // Keep the requested page within the available page range.
+    const currentPage =
+      totalPages > 0 ? Math.min(requestedPage, totalPages) : 1;
+
+    const properties = await Property.find()
+      .sort({ createdAt: -1 })
+      .skip((currentPage - 1) * limit)
+      .limit(limit)
+      .select("title address city rent image");
+
+    res.status(200).json({
+      success: true,
+      properties,
+      currentPage,
+      totalPages,
+      totalProperties,
+      limit,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
       message: err.message,
     });
   }

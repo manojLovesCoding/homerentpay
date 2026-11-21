@@ -41,11 +41,14 @@ import UpdateTenantPassword from "./pages/landloard/UpdateTenantPassword";
 import AssignTenant from "./pages/landloard/AssignTenant";
 import AssignedTenants from "./pages/landloard/AssignedTenants";
 import LandlordInquiries from "./pages/landloard/LandlordInquiries";
+import Property from "./pages/Property";
+import ScrollToTop from "./components/ScrollToTop";
 
 const App = () => {
   return (
     <>
       <Toaster />
+       <ScrollToTop />
       <Routes>
         {/* AUTH */}
         <Route
@@ -53,6 +56,15 @@ const App = () => {
           element={
             <PublicRoute>
               <Home />
+            </PublicRoute>
+          }
+        />
+
+        <Route
+          path="/properties"
+          element={
+            <PublicRoute>
+              <Property />
             </PublicRoute>
           }
         />

@@ -1,9 +1,11 @@
+
 import { Router } from "express";
 import {
   addProperty,
   deleteProperty,
   getProperties,
   getHomeProperties,
+  getPublicProperties,
   updateProperty,
   removeTenant,
   assignTenant,
@@ -17,8 +19,11 @@ import { upload } from "../middleware/upload.js";
 
 const propertyRouter = Router();
 
+// Public routes
 propertyRouter.get("/home", getHomeProperties);
+propertyRouter.get("/available", getPublicProperties);
 
+// Admin and landlord routes
 propertyRouter.post(
   "/add",
   verifyToken,
@@ -40,7 +45,6 @@ propertyRouter.delete(
   authorizeRoles("admin", "landlord"),
   deleteProperty
 );
-
 
 propertyRouter.put(
   "/:id",
@@ -84,7 +88,5 @@ propertyRouter.get(
   authorizeRoles("tenant"),
   getPendingRent
 );
-
-
 
 export default propertyRouter;
