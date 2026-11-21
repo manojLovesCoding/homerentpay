@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import {
   CalendarDays,
@@ -11,6 +10,7 @@ import {
   RefreshCw,
   ShieldCheck,
   Wallet,
+  AlertCircle,
 } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -21,6 +21,8 @@ const RentStatus = () => {
   const [loading, setLoading] = useState(true);
   const [paid, setPaid] = useState(false);
   const [paying, setPaying] = useState(false);
+  const [pendingMonths, setPendingMonths] = useState([]);
+  const [nextDue, setNextDue] = useState(null);
 
   useEffect(() => {
     getTenantProperty();
@@ -33,11 +35,13 @@ const RentStatus = () => {
       setProperty(data.property);
 
       if (data.property?._id) {
-        const status = await api.get(
-          `/payment/status?propertyId=${data.property._id}`
+        const res = await api.get(
+          `/property/pending-rent?propertyId=${data.property._id}`
         );
 
-        setPaid(status.data.paid);
+        setPaid(!res.data.pending);
+        setPendingMonths(res.data.pendingMonths || []);
+        setNextDue(res.data.nextDue || null);
       }
     } catch (error) {
       console.log(error);
@@ -45,6 +49,12 @@ const RentStatus = () => {
       setLoading(false);
     }
   };
+
+  const formatMonthYear = (month, year, style = "short") =>
+    new Date(year, month - 1).toLocaleString("en-US", {
+      month: style,
+      year: "numeric",
+    });
 
   const handlePayment = async () => {
     if (!property?._id || paying || paid) return;
@@ -67,7 +77,7 @@ const RentStatus = () => {
         amount: data.order.amount,
         currency: data.order.currency,
         name: "Rent Payment",
-        description: `Monthly rent for ${property.title}`,
+        description: `Rent for ${property.title}`,
         order_id: data.order.id,
 
         handler: async function (response) {
@@ -83,7 +93,7 @@ const RentStatus = () => {
                 autoClose: 3000,
               });
 
-              setPaid(true);
+              // Refresh: moves on to the next unpaid month, if any
               await getTenantProperty();
             } else {
               toast.error(
@@ -125,8 +135,7 @@ const RentStatus = () => {
         setPaying(false);
 
         toast.error(
-          response.error?.description ||
-            "Payment failed. Please try again."
+          response.error?.description || "Payment failed. Please try again."
         );
       });
 
@@ -144,13 +153,11 @@ const RentStatus = () => {
     }
   };
 
-  const currentDate = new Date();
+  // Billing month = oldest unpaid month (falls back to current month when all paid)
+  const billing = nextDue ? new Date(nextDue.year, nextDue.month - 1) : new Date();
 
-  const currentMonth = currentDate.toLocaleString("en-US", {
-    month: "long",
-  });
-
-  const currentYear = currentDate.getFullYear();
+  const currentMonth = billing.toLocaleString("en-US", { month: "long" });
+  const currentYear = billing.getFullYear();
 
   if (loading) {
     return (
@@ -219,7 +226,7 @@ const RentStatus = () => {
             </h1>
 
             <p className="mt-1 text-xs text-[#68756A]">
-              Manage your current month's rental payment.
+              Manage your rental payments.
             </p>
           </div>
 
@@ -230,11 +237,7 @@ const RentStatus = () => {
                 : "border-[#EBDDBB] bg-[#FBF4E5] text-[#946B25]"
             }`}
           >
-            {paid ? (
-              <CheckCircle2 size={14} />
-            ) : (
-              <Clock3 size={14} />
-            )}
+            {paid ? <CheckCircle2 size={14} /> : <Clock3 size={14} />}
 
             {paid ? "Paid" : "Payment Due"}
           </span>
@@ -280,7 +283,7 @@ const RentStatus = () => {
                 </h3>
 
                 <span className="text-[11px] text-[#879187]">
-                  Current billing period
+                  {paid ? "All months cleared" : "Oldest unpaid month"}
                 </span>
               </div>
 
@@ -292,9 +295,7 @@ const RentStatus = () => {
                   </div>
 
                   <div className="min-w-0">
-                    <p className="text-[10px] text-[#879187]">
-                      Property
-                    </p>
+                    <p className="text-[10px] text-[#879187]">Property</p>
 
                     <p className="truncate text-xs font-semibold text-[#344239]">
                       {property.title}
@@ -308,9 +309,7 @@ const RentStatus = () => {
                   </div>
 
                   <div>
-                    <p className="text-[10px] text-[#879187]">
-                      Billing Period
-                    </p>
+                    <p className="text-[10px] text-[#879187]">Billing Period</p>
 
                     <p className="text-xs font-semibold text-[#344239]">
                       {currentMonth} {currentYear}
@@ -332,17 +331,11 @@ const RentStatus = () => {
                         : "bg-[#F5EACD] text-[#946B25]"
                     }`}
                   >
-                    {paid ? (
-                      <CheckCircle2 size={17} />
-                    ) : (
-                      <Clock3 size={17} />
-                    )}
+                    {paid ? <CheckCircle2 size={17} /> : <Clock3 size={17} />}
                   </div>
 
                   <div>
-                    <p className="text-[10px] text-[#879187]">
-                      Status
-                    </p>
+                    <p className="text-[10px] text-[#879187]">Status</p>
 
                     <p
                       className={`text-xs font-bold ${
@@ -354,6 +347,22 @@ const RentStatus = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Overdue notice */}
+              {pendingMonths.length > 1 && (
+                <div className="mt-3 flex items-start gap-2 rounded-xl border border-[#F0D7D1] bg-[#F8EAE6] p-3 text-xs leading-5 text-[#A64B43]">
+                  <AlertCircle size={15} className="mt-0.5 shrink-0" />
+
+                  <p>
+                    You have {pendingMonths.length} unpaid months:{" "}
+                    {pendingMonths
+                      .map((m) => formatMonthYear(m.month, m.year))
+                      .join(", ")}
+                    . Pay the oldest month first; the next one will appear
+                    after each payment.
+                  </p>
+                </div>
+              )}
 
               {/* Payment Button */}
               <button
@@ -370,7 +379,7 @@ const RentStatus = () => {
                 {paid ? (
                   <>
                     <CheckCircle2 size={17} />
-                    Rent Paid Successfully
+                    All Rent Paid
                   </>
                 ) : paying ? (
                   <>
@@ -380,7 +389,7 @@ const RentStatus = () => {
                 ) : (
                   <>
                     <CreditCard size={17} />
-                    Pay Rent Securely
+                    Pay {currentMonth} Rent
                   </>
                 )}
               </button>
@@ -411,11 +420,7 @@ const RentStatus = () => {
                       : "bg-white text-[#946B25]"
                   }`}
                 >
-                  {paid ? (
-                    <CheckCircle2 size={19} />
-                  ) : (
-                    <Wallet size={19} />
-                  )}
+                  {paid ? <CheckCircle2 size={19} /> : <Wallet size={19} />}
                 </div>
 
                 <div>
@@ -435,8 +440,10 @@ const RentStatus = () => {
 
               <p className="mt-2 text-xs leading-5 text-[#68756A]">
                 {paid
-                  ? "Your rent payment for this month has been successfully completed."
-                  : "Your monthly rent payment is pending. Please complete it before your due date."}
+                  ? "Your rent is fully paid up to the current month."
+                  : pendingMonths.length > 1
+                    ? `${pendingMonths.length} months of rent are pending. Please clear them starting with ${currentMonth} ${currentYear}.`
+                    : "Your monthly rent payment is pending. Please complete it before your due date."}
               </p>
             </div>
 
@@ -451,10 +458,7 @@ const RentStatus = () => {
               </h3>
 
               <div className="mt-2 flex items-start gap-2 text-xs leading-5 text-[#68756A]">
-                <MapPin
-                  size={15}
-                  className="mt-0.5 shrink-0 text-[#527C61]"
-                />
+                <MapPin size={15} className="mt-0.5 shrink-0 text-[#527C61]" />
 
                 <p>
                   {property.address}
@@ -463,9 +467,7 @@ const RentStatus = () => {
               </div>
 
               <div className="mt-3 flex items-center justify-between border-t border-[#E6E3D9] pt-3">
-                <span className="text-xs text-[#68756A]">
-                  Monthly Rent
-                </span>
+                <span className="text-xs text-[#68756A]">Monthly Rent</span>
 
                 <span className="flex items-center text-sm font-bold text-[#244B3C]">
                   <IndianRupee size={14} />

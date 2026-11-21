@@ -41,11 +41,17 @@ const propertySchema = new mongoose.Schema(
     },
 
     dueDate: {
-  type: Number,
-  min: 1,
-  max: 31,
-  default: null,
-},
+      type: Number,
+      min: 1,
+      max: 31,
+      default: null,
+    },
+
+    // Date the current tenant was assigned (start of rent billing)
+    assignedAt: {
+      type: Date,
+      default: null,
+    },
 
     status: {
       type: String,

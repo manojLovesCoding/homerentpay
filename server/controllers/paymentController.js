@@ -1,8 +1,10 @@
+import mongoose from "mongoose";
 import razorpay from "../config/razorpay.js";
 import Property from "../models/Property.js";
 import Payment from "../models/Payment.js";
 import crypto from "crypto";
 import User from "../models/User.js";
+import { getUnpaidMonths } from "../utils/rent.js";
 
 export const createOrder = async (req, res) => {
   try {
@@ -27,32 +29,40 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    const options = {
+    // Oldest unpaid month is chosen on the server so it can't be tampered with
+    const unpaid = await getUnpaidMonths(property, req.user.id);
+
+    if (unpaid.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No pending rent to pay",
+      });
+    }
+
+    const target = unpaid[0];
+
+    const order = await razorpay.orders.create({
       amount: property.rent * 100, // Amount in paise
       currency: "INR",
       receipt: `receipt_${Date.now()}`,
-    };
+    });
 
-    const order = await razorpay.orders.create(options);
-
-    const currentDate = new Date();
-
-await Payment.create({
-  tenant: req.user.id,
-  landlord: property.landlord,
-  property: property._id,
-  amount: property.rent,
-  orderId: order.id,
-  status: "created",
-
-  month: currentDate.getMonth() + 1,
-  year: currentDate.getFullYear(),
-});
+    await Payment.create({
+      tenant: req.user.id,
+      landlord: property.landlord,
+      property: property._id,
+      amount: property.rent,
+      orderId: order.id,
+      status: "created",
+      month: target.month,
+      year: target.year,
+    });
 
     res.status(201).json({
       success: true,
       order,
       key: process.env.RAZORPAY_KEY_ID,
+      billingMonth: { month: target.month, year: target.year },
     });
   } catch (error) {
     res.status(500).json({
@@ -64,11 +74,8 @@ await Payment.create({
 
 export const verifyPayment = async (req, res) => {
   try {
-    const {
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature,
-    } = req.body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
+      req.body;
 
     const generatedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
@@ -82,8 +89,10 @@ export const verifyPayment = async (req, res) => {
       });
     }
 
+    // Payment record must belong to the logged-in tenant
     const payment = await Payment.findOne({
       orderId: razorpay_order_id,
+      tenant: req.user.id,
     });
 
     if (!payment) {
@@ -114,50 +123,45 @@ export const verifyPayment = async (req, res) => {
 
 export const getPaymentHistory = async (req, res) => {
   try {
-
     const payments = await Payment.find({
       tenant: req.user.id,
       status: "paid",
     })
       .populate("property", "title")
       .sort({
+        year: -1,
+        month: -1,
         createdAt: -1,
       });
-
 
     res.status(200).json({
       success: true,
       payments,
     });
-
-
   } catch (error) {
-
     res.status(500).json({
       success: false,
       message: error.message,
     });
-
   }
 };
 
 export const getLandlordSummary = async (req, res) => {
   try {
-
     const landlordId = req.user.id;
+
+    // Aggregation does not auto-cast strings to ObjectId
+    const landlordObjectId = new mongoose.Types.ObjectId(landlordId);
 
     const date = new Date();
 
     const month = date.getMonth() + 1;
     const year = date.getFullYear();
 
-
     // Total properties
     const totalProperties = await Property.countDocuments({
       landlord: landlordId,
     });
-
-
 
     // Total tenants
     const totalTenants = await User.countDocuments({
@@ -166,13 +170,11 @@ export const getLandlordSummary = async (req, res) => {
       isActive: true,
     });
 
-
-
     // Monthly income
     const incomeResult = await Payment.aggregate([
       {
         $match: {
-          landlord: landlordId,
+          landlord: landlordObjectId,
           status: "paid",
           month,
           year,
@@ -188,19 +190,13 @@ export const getLandlordSummary = async (req, res) => {
       },
     ]);
 
-
-    const monthlyIncome =
-      incomeResult.length > 0
-        ? incomeResult[0].total
-        : 0;
-
-
+    const monthlyIncome = incomeResult.length > 0 ? incomeResult[0].total : 0;
 
     // Pending rent
     const pendingPayments = await Payment.aggregate([
       {
         $match: {
-          landlord: landlordId,
+          landlord: landlordObjectId,
           status: "created",
         },
       },
@@ -214,13 +210,8 @@ export const getLandlordSummary = async (req, res) => {
       },
     ]);
 
-
     const pendingRent =
-      pendingPayments.length > 0
-        ? pendingPayments[0].total
-        : 0;
-
-
+      pendingPayments.length > 0 ? pendingPayments[0].total : 0;
 
     // Recent payments
     const payments = await Payment.find({
@@ -234,10 +225,7 @@ export const getLandlordSummary = async (req, res) => {
       })
       .limit(10);
 
-
-
     res.status(200).json({
-
       success: true,
 
       stats: {
@@ -248,17 +236,12 @@ export const getLandlordSummary = async (req, res) => {
       },
 
       payments,
-
     });
-
-
   } catch (error) {
-
     res.status(500).json({
       success: false,
       message: error.message,
     });
-
   }
 };
 
@@ -274,7 +257,6 @@ export const getAllPayments = async (req, res) => {
       success: true,
       payments,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -297,7 +279,6 @@ export const getAdminSummary = async (req, res) => {
 
     const totalProperties = await Property.countDocuments();
 
-
     const revenueResult = await Payment.aggregate([
       {
         $match: {
@@ -314,17 +295,11 @@ export const getAdminSummary = async (req, res) => {
       },
     ]);
 
-
-    const revenue =
-      revenueResult.length > 0
-        ? revenueResult[0].total
-        : 0;
-
+    const revenue = revenueResult.length > 0 ? revenueResult[0].total : 0;
 
     const pendingPayments = await Payment.countDocuments({
       status: "created",
     });
-
 
     const recentPayments = await Payment.find()
       .populate("tenant", "name")
@@ -333,7 +308,6 @@ export const getAdminSummary = async (req, res) => {
         createdAt: -1,
       })
       .limit(5);
-
 
     res.status(200).json({
       success: true,
@@ -348,16 +322,11 @@ export const getAdminSummary = async (req, res) => {
       },
 
       activities: recentPayments,
-
     });
-
-
   } catch (error) {
-
     res.status(500).json({
       success: false,
       message: error.message,
     });
-
   }
 };

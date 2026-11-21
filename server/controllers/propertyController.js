@@ -1,7 +1,7 @@
 import Property from "../models/Property.js";
 import { v2 as cloudinary } from "cloudinary";
 import User from "../models/User.js";
-import Payment from "../models/Payment.js";
+import { getUnpaidMonths } from "../utils/rent.js";
 
 export const addProperty = async (req, res) => {
   try {
@@ -270,6 +270,7 @@ export const assignTenant = async (req, res) => {
     property.tenant = tenant._id;
     property.status = "rented";
     property.dueDate = Number(dueDate);
+    property.assignedAt = new Date(); // start of rent billing
 
     await property.save();
 
@@ -310,6 +311,7 @@ export const removeTenant = async (req, res) => {
     property.tenant = null;
     property.status = "available";
     property.dueDate = null;
+    property.assignedAt = null;
 
     await property.save();
 
@@ -390,20 +392,19 @@ export const getPaymentStatus = async (req, res) => {
   try {
     const { propertyId } = req.query;
 
-    const date = new Date();
-
-    const payment = await Payment.findOne({
+    const property = await Property.findOne({
+      _id: propertyId,
       tenant: req.user.id,
-      property: propertyId,
-      status: "paid",
-      month: date.getMonth() + 1,
-      year: date.getFullYear(),
+      status: "rented",
     });
+
+    const unpaid = property
+      ? await getUnpaidMonths(property, req.user.id)
+      : [];
 
     res.status(200).json({
       success: true,
-      paid: !!payment,
-      payment,
+      paid: unpaid.length === 0,
     });
   } catch (error) {
     res.status(500).json({
@@ -437,31 +438,17 @@ export const getPendingRent = async (req, res) => {
       });
     }
 
-    const date = new Date();
-
-    const payment = await Payment.findOne({
-      tenant: req.user.id,
-      property: propertyId,
-      month: date.getMonth() + 1,
-      year: date.getFullYear(),
-      status: "paid",
-    });
-
-    if (payment) {
-      return res.status(200).json({
-        success: true,
-        pending: false,
-        message: "Rent already paid",
-        amount: property.rent,
-      });
-    }
+    const unpaid = await getUnpaidMonths(property, req.user.id);
+    const total = unpaid.reduce((sum, m) => sum + m.amount, 0);
 
     res.status(200).json({
       success: true,
-      pending: true,
-      amount: property.rent,
+      pending: unpaid.length > 0,
+      amount: total, // total across all unpaid months
+      pendingMonths: unpaid, // oldest first
+      nextDue: unpaid[0] || null, // oldest unpaid month
       dueDate: property.dueDate,
-      message: "Rent payment pending",
+      message: unpaid.length ? "Rent payment pending" : "Rent already paid",
     });
   } catch (error) {
     res.status(500).json({
