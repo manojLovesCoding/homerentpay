@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import api from "../../api/axios";
 
@@ -37,6 +36,41 @@ const LandlordDashboard = () => {
       maximumFractionDigits: 0,
     }).format(amount || 0);
 
+  // Billing month the rent is FOR
+  const formatRentMonth = (payment) => {
+    if (!payment.month || !payment.year) return "—";
+
+    return new Date(
+      Number(payment.year),
+      Number(payment.month) - 1,
+    ).toLocaleString("en-IN", {
+      month: "long",
+      year: "numeric",
+    });
+  };
+
+  // Date and time the tenant actually paid
+  const getPaidDateTime = (payment) => {
+    const raw = payment.paidAt || payment.createdAt;
+
+    if (!raw) return null;
+
+    const date = new Date(raw);
+
+    return {
+      date: date.toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }),
+      time: date.toLocaleTimeString("en-IN", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      }),
+    };
+  };
+
   const statsData = [
     {
       label: "Total Properties",
@@ -60,7 +94,7 @@ const LandlordDashboard = () => {
       label: "Monthly Income",
       value: formatCurrency(stats.monthlyIncome),
       icon: "💰",
-      description: "Current month",
+      description: "Paid this month",
       iconBg: "bg-[#F5EDDF]",
       iconColor: "text-[#A47735]",
       dotColor: "bg-[#D6A45D]",
@@ -69,7 +103,7 @@ const LandlordDashboard = () => {
       label: "Pending Rent",
       value: formatCurrency(stats.pendingRent),
       icon: "⏳",
-      description: "Awaiting payment",
+      description: "Unpaid months, all tenants",
       iconBg: "bg-[#F8F0E3]",
       iconColor: "text-[#A47735]",
       dotColor: "bg-[#D6A45D]",
@@ -131,11 +165,11 @@ const LandlordDashboard = () => {
               </div>
 
               <div>
-                <p className="text-[10px] text-[#D6E2D7]">
-                  Rental overview
-                </p>
+                <p className="text-[10px] text-[#D6E2D7]">Rental overview</p>
                 <p className="text-xs font-semibold text-white">
-                  Everything looks good
+                  {stats.pendingRent > 0
+                    ? `${formatCurrency(stats.pendingRent)} rent pending`
+                    : "All rent collected"}
                 </p>
               </div>
             </div>
@@ -171,7 +205,9 @@ const LandlordDashboard = () => {
                 </h2>
 
                 <p className="mt-1.5 flex items-center gap-1.5 text-[10px] text-[#8A958B]">
-                  <span className={`h-1.5 w-1.5 rounded-full ${item.dotColor}`} />
+                  <span
+                    className={`h-1.5 w-1.5 rounded-full ${item.dotColor}`}
+                  />
                   {item.description}
                 </p>
               </div>
@@ -208,88 +244,127 @@ const LandlordDashboard = () => {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-[#E6E3D9] bg-[#F7F8F5]">
-                  {["Tenant", "Property", "Amount", "Status"].map(
-                    (heading) => (
-                      <th
-                        key={heading}
-                        className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-[#68756A]"
-                      >
-                        {heading}
-                      </th>
-                    ),
-                  )}
+                  {[
+                    "Tenant",
+                    "Property",
+                    "Rent For",
+                    "Amount",
+                    "Paid On",
+                    "Status",
+                  ].map((heading) => (
+                    <th
+                      key={heading}
+                      className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-[#68756A]"
+                    >
+                      {heading}
+                    </th>
+                  ))}
                 </tr>
               </thead>
 
               <tbody className="divide-y divide-[#F0EFE9]">
                 {payments.length > 0 ? (
-                  payments.map((payment) => (
-                    <tr
-                      key={payment._id}
-                      className="transition hover:bg-[#F8FAF6]"
-                    >
-                      {/* TENANT */}
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2.5">
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#E8EEE8] text-xs font-bold text-[#244B3C]">
-                            {payment.tenant?.name?.charAt(0)?.toUpperCase() ||
-                              "T"}
+                  payments.map((payment) => {
+                    const paidAt = getPaidDateTime(payment);
+
+                    return (
+                      <tr
+                        key={payment._id}
+                        className="transition hover:bg-[#F8FAF6]"
+                      >
+                        {/* TENANT */}
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2.5">
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#E8EEE8] text-xs font-bold text-[#244B3C]">
+                              {payment.tenant?.name
+                                ?.charAt(0)
+                                ?.toUpperCase() || "T"}
+                            </div>
+
+                            <div>
+                              <p className="text-xs font-semibold text-[#303B32]">
+                                {payment.tenant?.name || "Unknown Tenant"}
+                              </p>
+
+                              <p className="text-[10px] text-[#8A958B]">
+                                Tenant
+                              </p>
+                            </div>
                           </div>
+                        </td>
 
-                          <div>
-                            <p className="text-xs font-semibold text-[#303B32]">
-                              {payment.tenant?.name || "Unknown Tenant"}
-                            </p>
+                        {/* PROPERTY */}
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2.5">
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#EAF0E8] text-sm">
+                              🏠
+                            </div>
 
-                            <p className="text-[10px] text-[#8A958B]">
-                              Tenant
-                            </p>
+                            <div className="min-w-0">
+                              <p className="max-w-xs truncate text-xs font-medium text-[#3C493F]">
+                                {payment.property?.title ||
+                                  "Unknown Property"}
+                              </p>
+
+                              <p className="text-[10px] text-[#8A958B]">
+                                Rental Property
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      {/* PROPERTY */}
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2.5">
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#EAF0E8] text-sm">
-                            🏠
-                          </div>
+                        {/* RENT FOR */}
+                        <td className="px-4 py-3">
+                          <p className="whitespace-nowrap text-xs font-bold text-[#303B32]">
+                            {formatRentMonth(payment)}
+                          </p>
+                          <p className="mt-0.5 text-[10px] text-[#8A958B]">
+                            Monthly rent
+                          </p>
+                        </td>
 
-                          <div className="min-w-0">
-                            <p className="max-w-xs truncate text-xs font-medium text-[#3C493F]">
-                              {payment.property?.title || "Unknown Property"}
-                            </p>
+                        {/* AMOUNT */}
+                        <td className="px-4 py-3">
+                          <p className="text-xs font-bold text-[#244B3C]">
+                            {formatCurrency(payment.amount)}
+                          </p>
+                        </td>
 
-                            <p className="text-[10px] text-[#8A958B]">
-                              Rental Property
-                            </p>
-                          </div>
-                        </div>
-                      </td>
+                        {/* PAID ON */}
+                        <td className="px-4 py-3">
+                          {paidAt ? (
+                            <>
+                              <p className="whitespace-nowrap text-xs font-medium text-[#3C493F]">
+                                {paidAt.date}
+                              </p>
+                              <p className="mt-0.5 text-[10px] text-[#8A958B]">
+                                {paidAt.time}
+                              </p>
+                            </>
+                          ) : (
+                            <span className="text-xs text-[#8A958B]">—</span>
+                          )}
+                        </td>
 
-                      {/* AMOUNT */}
-                      <td className="px-4 py-3">
-                        <p className="text-xs font-bold text-[#244B3C]">
-                          {formatCurrency(payment.amount)}
-                        </p>
-                      </td>
-
-                      {/* STATUS */}
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold capitalize ${getPaymentStatusStyle(
-                            payment.status,
-                          )}`}
-                        >
-                          <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                          {payment.status === "paid" ? "Paid" : payment.status || "Unknown"}
-                        </span>
-                      </td>
-                    </tr>
-                  ))
+                        {/* STATUS */}
+                        <td className="px-4 py-3">
+                          <span
+                            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold capitalize ${getPaymentStatusStyle(
+                              payment.status,
+                            )}`}
+                          >
+                            <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                            {payment.status === "paid"
+                              ? "Paid"
+                              : payment.status || "Unknown"}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })
                 ) : (
                   <tr>
-                    <td colSpan="4" className="px-4 py-10 text-center">
+                    <td colSpan="6" className="px-4 py-10 text-center">
                       <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[#EAF0E8] text-xl">
                         💳
                       </div>
@@ -311,57 +386,86 @@ const LandlordDashboard = () => {
           {/* MOBILE PAYMENT CARDS */}
           <div className="divide-y divide-[#F0EFE9] md:hidden">
             {payments.length > 0 ? (
-              payments.map((payment) => (
-                <div
-                  key={payment._id}
-                  className="p-3 transition hover:bg-[#F8FAF6]"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex min-w-0 items-center gap-2.5">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#E8EEE8] text-xs font-bold text-[#244B3C]">
-                        {payment.tenant?.name?.charAt(0)?.toUpperCase() || "T"}
+              payments.map((payment) => {
+                const paidAt = getPaidDateTime(payment);
+
+                return (
+                  <div
+                    key={payment._id}
+                    className="p-3 transition hover:bg-[#F8FAF6]"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex min-w-0 items-center gap-2.5">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#E8EEE8] text-xs font-bold text-[#244B3C]">
+                          {payment.tenant?.name?.charAt(0)?.toUpperCase() ||
+                            "T"}
+                        </div>
+
+                        <div className="min-w-0">
+                          <p className="truncate text-xs font-semibold text-[#303B32]">
+                            {payment.tenant?.name || "Unknown Tenant"}
+                          </p>
+
+                          <p className="text-[10px] text-[#8A958B]">Tenant</p>
+                        </div>
                       </div>
 
+                      <span
+                        className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold capitalize ${getPaymentStatusStyle(
+                          payment.status,
+                        )}`}
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                        {payment.status === "paid"
+                          ? "Paid"
+                          : payment.status || "Unknown"}
+                      </span>
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-2 gap-3 rounded-lg bg-[#F7F8F5] p-2.5">
                       <div className="min-w-0">
-                        <p className="truncate text-xs font-semibold text-[#303B32]">
-                          {payment.tenant?.name || "Unknown Tenant"}
+                        <p className="text-[10px] font-medium uppercase tracking-wide text-[#8A958B]">
+                          Property
                         </p>
 
-                        <p className="text-[10px] text-[#8A958B]">Tenant</p>
+                        <p className="mt-1 truncate text-xs font-medium text-[#3C493F]">
+                          {payment.property?.title || "Unknown Property"}
+                        </p>
+                      </div>
+
+                      <div className="text-right">
+                        <p className="text-[10px] font-medium uppercase tracking-wide text-[#8A958B]">
+                          Amount
+                        </p>
+
+                        <p className="mt-1 text-sm font-bold text-[#244B3C]">
+                          {formatCurrency(payment.amount)}
+                        </p>
+                      </div>
+
+                      <div className="border-t border-[#E6E3D9] pt-2.5">
+                        <p className="text-[10px] font-medium uppercase tracking-wide text-[#8A958B]">
+                          Rent For
+                        </p>
+
+                        <p className="mt-1 text-xs font-semibold text-[#303B32]">
+                          {formatRentMonth(payment)}
+                        </p>
+                      </div>
+
+                      <div className="border-t border-[#E6E3D9] pt-2.5 text-right">
+                        <p className="text-[10px] font-medium uppercase tracking-wide text-[#8A958B]">
+                          Paid On
+                        </p>
+
+                        <p className="mt-1 text-xs font-semibold text-[#526056]">
+                          {paidAt ? `${paidAt.date}, ${paidAt.time}` : "—"}
+                        </p>
                       </div>
                     </div>
-
-                    <span
-                      className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold capitalize ${getPaymentStatusStyle(
-                        payment.status,
-                      )}`}
-                    >
-                      <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                      {payment.status === "paid" ? "Paid" : payment.status || "Unknown"}
-                    </span>
                   </div>
-
-                  <div className="mt-3 flex items-center justify-between gap-3 rounded-lg bg-[#F7F8F5] p-2.5">
-                    <div className="min-w-0">
-                      <p className="text-[10px] font-medium uppercase tracking-wide text-[#8A958B]">
-                        Property
-                      </p>
-
-                      <p className="mt-1 truncate text-xs font-medium text-[#3C493F]">
-                        {payment.property?.title || "Unknown Property"}
-                      </p>
-                    </div>
-
-                    <div className="shrink-0 text-right">
-                      <p className="text-[10px] text-[#8A958B]">Amount</p>
-
-                      <p className="mt-1 text-sm font-bold text-[#244B3C]">
-                        {formatCurrency(payment.amount)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className="px-4 py-10 text-center">
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[#EAF0E8] text-xl">

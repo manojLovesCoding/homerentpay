@@ -192,35 +192,34 @@ export const getLandlordSummary = async (req, res) => {
 
     const monthlyIncome = incomeResult.length > 0 ? incomeResult[0].total : 0;
 
-    // Pending rent
-    const pendingPayments = await Payment.aggregate([
-      {
-        $match: {
-          landlord: landlordObjectId,
-          status: "created",
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          total: {
-            $sum: "$amount",
-          },
-        },
-      },
-    ]);
+    // Pending rent: every unpaid month of every rented property
+    const rentedProperties = await Property.find({
+      landlord: landlordId,
+      status: "rented",
+      tenant: { $ne: null },
+    });
 
-    const pendingRent =
-      pendingPayments.length > 0 ? pendingPayments[0].total : 0;
+    const unpaidPerProperty = await Promise.all(
+      rentedProperties.map((property) =>
+        getUnpaidMonths(property, property.tenant),
+      ),
+    );
 
-    // Recent payments
+    const pendingRent = unpaidPerProperty.reduce(
+      (sum, months) =>
+        sum + months.reduce((total, m) => total + Number(m.amount || 0), 0),
+      0,
+    );
+
+    // Recent payments (latest paid first)
     const payments = await Payment.find({
       landlord: landlordId,
       status: "paid",
     })
-      .populate("tenant", "name")
+      .populate("tenant", "name email")
       .populate("property", "title")
       .sort({
+        paidAt: -1,
         createdAt: -1,
       })
       .limit(10);
