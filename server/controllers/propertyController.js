@@ -308,6 +308,20 @@ export const removeTenant = async (req, res) => {
       });
     }
 
+    if (property.status !== "rented" || !property.tenant) {
+      return res.status(400).json({
+        success: false,
+        message: "Property is already vacant",
+      });
+    }
+
+    // Check what the tenant still owes before clearing the assignment
+    const unpaid = await getUnpaidMonths(property, property.tenant);
+    const unpaidAmount = unpaid.reduce(
+      (sum, m) => sum + Number(m.amount || 0),
+      0,
+    );
+
     property.tenant = null;
     property.status = "available";
     property.dueDate = null;
@@ -317,8 +331,10 @@ export const removeTenant = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Tenant removed successfully",
+      message: "Property is now vacant",
       property,
+      unpaidMonths: unpaid.length,
+      unpaidAmount,
     });
   } catch (error) {
     res.status(500).json({

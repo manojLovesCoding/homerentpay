@@ -8,12 +8,12 @@ import {
   MapPin,
   Pencil,
   Trash2,
-  Eye,
   Home,
   CheckCircle2,
   Building2,
   X,
   Users,
+  UserMinus,
 } from "lucide-react";
 
 const PropertyList = () => {
@@ -24,6 +24,7 @@ const PropertyList = () => {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [deletingId, setDeletingId] = useState(null);
+  const [vacatingId, setVacatingId] = useState(null);
 
   const fetchProperties = async () => {
     try {
@@ -41,6 +42,13 @@ const PropertyList = () => {
   useEffect(() => {
     fetchProperties();
   }, []);
+
+  const formatCurrency = (amount) =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(amount || 0);
 
   // Delete property
   const handleDelete = (id) => {
@@ -106,12 +114,98 @@ const PropertyList = () => {
     );
   };
 
-  const formatCurrency = (amount) =>
-    new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 0,
-    }).format(amount || 0);
+  // Make property vacant (tenant left)
+  const handleVacate = (property) => {
+    const tenantName = property.tenant?.name || "the current tenant";
+
+    toast(
+      (t) => (
+        <div className="w-full">
+          <p className="text-sm font-semibold text-[#242B26]">
+            Make this property vacant?
+          </p>
+
+          <p className="mt-1 text-xs leading-5 text-[#68756A]">
+            {tenantName} will be removed from{" "}
+            <span className="font-semibold">{property.title}</span> and will no
+            longer be billed or able to pay rent for it. Past payment records
+            are kept.
+          </p>
+
+          <div className="mt-3 flex justify-end gap-2">
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="rounded-lg border border-[#E6E3D9] px-3 py-1.5 text-xs font-semibold text-[#526056] hover:bg-[#F1F3EF]"
+            >
+              Cancel
+            </button>
+
+            <button
+              onClick={async () => {
+                toast.dismiss(t.id);
+                setVacatingId(property._id);
+
+                try {
+                  const res = await api.put(
+                    `/property/${property._id}/remove-tenant`,
+                  );
+
+                  setProperties((prev) =>
+                    prev.map((p) =>
+                      p._id === property._id
+                        ? {
+                            ...p,
+                            status: "available",
+                            tenant: null,
+                            dueDate: null,
+                          }
+                        : p,
+                    ),
+                  );
+
+                  toast.success("Property is now vacant");
+
+                  const { unpaidMonths, unpaidAmount } = res.data;
+
+                  if (unpaidAmount > 0) {
+                    toast(
+                      `${tenantName} left with ${formatCurrency(
+                        unpaidAmount,
+                      )} unpaid (${unpaidMonths} month${
+                        unpaidMonths > 1 ? "s" : ""
+                      }). Collect it separately.`,
+                      { icon: "⚠️", duration: 8000 },
+                    );
+                  }
+                } catch (err) {
+                  toast.error(
+                    err.response?.data?.message || "Failed to make vacant",
+                  );
+                } finally {
+                  setVacatingId(null);
+                }
+              }}
+              className="rounded-lg bg-[#244B3C] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#193A2E]"
+            >
+              Make Vacant
+            </button>
+          </div>
+        </div>
+      ),
+      {
+        duration: Infinity,
+        position: "top-center",
+        style: {
+          background: "#FFFFFF",
+          color: "#242B26",
+          border: "1px solid #E6E3D9",
+          borderRadius: "12px",
+          padding: "14px",
+          maxWidth: "360px",
+        },
+      },
+    );
+  };
 
   const filteredProperties = useMemo(() => {
     return properties.filter((property) => {
@@ -371,16 +465,6 @@ const PropertyList = () => {
 
                     <p className="text-[10px] text-white/80">Per month</p>
                   </div>
-
-                  <button
-                    onClick={() =>
-                      navigate(`/landlord/property/edit/${property._id}`)
-                    }
-                    title="Edit property"
-                    className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg bg-white/90 text-[#244B3C] shadow-sm transition hover:bg-white"
-                  >
-                    <Pencil size={14} />
-                  </button>
                 </div>
 
                 {/* Content */}
@@ -431,19 +515,9 @@ const PropertyList = () => {
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={() =>
-                        navigate(`/landlord/property/${property._id}`)
-                      }
-                      className={`${buttonBase} border border-[#DCE4DB] text-[#527C61] hover:bg-[#F1F5F0]`}
-                    >
-                      <Eye size={14} />
-                      View
-                    </button>
-
-                    <button
-                      onClick={() =>
                         navigate(`/landlord/property/edit/${property._id}`)
                       }
-                      className={`${buttonBase} bg-[#F1F3EF] text-[#526056] hover:bg-[#E6EAE3]`}
+                      className={`${buttonBase} col-span-2 bg-[#F1F3EF] text-[#526056] hover:bg-[#E6EAE3]`}
                     >
                       <Pencil size={13} />
                       Edit
@@ -462,10 +536,27 @@ const PropertyList = () => {
                         Assign Tenant
                       </button>
                     ) : (
-                      <div className="col-span-2 flex items-center justify-center gap-1.5 rounded-lg bg-[#EAF0E9] px-3 py-2 text-xs font-semibold text-[#527C61]">
-                        <CheckCircle2 size={14} />
-                        Currently Rented
-                      </div>
+                      <>
+                        <div className="col-span-2 flex items-center justify-center gap-1.5 rounded-lg bg-[#EAF0E9] px-3 py-2 text-xs font-semibold text-[#527C61]">
+                          <CheckCircle2 size={14} className="shrink-0" />
+                          <span className="truncate">
+                            {property.tenant?.name
+                              ? `Rented to ${property.tenant.name}`
+                              : "Currently Rented"}
+                          </span>
+                        </div>
+
+                        <button
+                          onClick={() => handleVacate(property)}
+                          disabled={vacatingId === property._id}
+                          className="col-span-2 inline-flex items-center justify-center gap-1.5 rounded-lg border border-[#EBDDBB] bg-[#FBF7ED] px-3 py-2 text-xs font-semibold text-[#946B25] transition hover:bg-[#F7EFD9] disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <UserMinus size={14} />
+                          {vacatingId === property._id
+                            ? "Updating..."
+                            : "Tenant Left – Make Vacant"}
+                        </button>
+                      </>
                     )}
 
                     <button
