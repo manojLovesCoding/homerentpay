@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import {
   Wallet,
@@ -9,7 +8,6 @@ import {
   CheckCircle2,
   CreditCard,
   IndianRupee,
-  RefreshCw,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "../../api/axios";
@@ -42,11 +40,33 @@ const Payments = () => {
     });
   };
 
+  // Date and time the tenant actually paid
+  const getPaidDateTime = (payment) => {
+    const raw =
+      payment.paidAt || (payment.status === "paid" ? payment.createdAt : null);
+
+    if (!raw) return null;
+
+    const date = new Date(raw);
+
+    return {
+      date: date.toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }),
+      time: date.toLocaleTimeString("en-IN", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      }),
+    };
+  };
+
   const formatAmount = (amount) =>
     new Intl.NumberFormat("en-IN").format(Number(amount || 0));
 
-  const getInitial = (name) =>
-    name?.trim()?.charAt(0)?.toUpperCase() || "T";
+  const getInitial = (name) => name?.trim()?.charAt(0)?.toUpperCase() || "T";
 
   const totalCollected = payments
     .filter((payment) => payment.status === "paid")
@@ -57,11 +77,11 @@ const Payments = () => {
     .reduce((total, payment) => total + Number(payment.amount || 0), 0);
 
   const paidCount = payments.filter(
-    (payment) => payment.status === "paid"
+    (payment) => payment.status === "paid",
   ).length;
 
   const pendingCount = payments.filter(
-    (payment) => payment.status !== "paid"
+    (payment) => payment.status !== "paid",
   ).length;
 
   const collectionRate = payments.length
@@ -135,7 +155,6 @@ const Payments = () => {
   return (
     <div className="bg-[#F7F8F5] p-3 sm:p-4">
       <div className="mx-auto max-w-6xl">
-
         {/* Header */}
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -179,7 +198,9 @@ const Payments = () => {
                 className={`relative overflow-hidden rounded-xl border border-[#E6E3D9] border-l-[3px] ${stat.accent} bg-white p-3.5 shadow-sm transition hover:shadow-md sm:p-4`}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${stat.iconBg} ${stat.iconColor}`}>
+                  <div
+                    className={`flex h-9 w-9 items-center justify-center rounded-lg ${stat.iconBg} ${stat.iconColor}`}
+                  >
                     <Icon size={18} />
                   </div>
 
@@ -212,7 +233,6 @@ const Payments = () => {
 
         {/* Payment History */}
         <div className="mt-4 overflow-hidden rounded-xl border border-[#E6E3D9] bg-white shadow-sm">
-
           {/* Section Header */}
           <div className="flex items-center justify-between gap-3 border-b border-[#E6E3D9] px-4 py-3">
             <div>
@@ -235,25 +255,29 @@ const Payments = () => {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-[#E6E3D9] bg-[#F7F8F5]">
-                  {["Tenant", "Billing Month", "Amount", "Status"].map(
-                    (heading) => (
-                      <th
-                        key={heading}
-                        className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[#68756A]"
-                      >
-                        {heading}
-                      </th>
-                    )
-                  )}
+                  {[
+                    "Tenant",
+                    "Billing Month",
+                    "Amount",
+                    "Paid On",
+                    "Status",
+                  ].map((heading) => (
+                    <th
+                      key={heading}
+                      className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[#68756A]"
+                    >
+                      {heading}
+                    </th>
+                  ))}
                 </tr>
               </thead>
 
               <tbody>
                 {payments.length > 0 ? (
                   payments.map((payment) => {
-                    const tenantName =
-                      payment.tenant?.name || "Unknown Tenant";
+                    const tenantName = payment.tenant?.name || "Unknown Tenant";
                     const isPaid = payment.status === "paid";
+                    const paidAt = getPaidDateTime(payment);
 
                     return (
                       <tr
@@ -281,7 +305,10 @@ const Payments = () => {
 
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2 text-xs font-medium text-[#526056]">
-                            <CalendarDays size={15} className="text-[#A8BDA5]" />
+                            <CalendarDays
+                              size={15}
+                              className="text-[#A8BDA5]"
+                            />
                             {formatMonth(payment.year, payment.month)}
                           </div>
                         </td>
@@ -290,6 +317,22 @@ const Payments = () => {
                           <span className="text-xs font-bold text-[#242B26]">
                             ₹{formatAmount(payment.amount)}
                           </span>
+                        </td>
+
+                        <td className="px-4 py-3">
+                          {paidAt ? (
+                            <>
+                              <p className="text-xs font-medium text-[#3C493F]">
+                                {paidAt.date}
+                              </p>
+                              <p className="mt-0.5 flex items-center gap-1 text-[10px] text-[#89938A]">
+                                <Clock3 size={11} />
+                                {paidAt.time}
+                              </p>
+                            </>
+                          ) : (
+                            <span className="text-xs text-[#89938A]">—</span>
+                          )}
                         </td>
 
                         <td className="px-4 py-3">
@@ -313,7 +356,7 @@ const Payments = () => {
                   })
                 ) : (
                   <tr>
-                    <td colSpan="4" className="px-4 py-12 text-center">
+                    <td colSpan="5" className="px-4 py-12 text-center">
                       <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[#F7F4EA] text-[#527C61]">
                         <CreditCard size={22} />
                       </div>
@@ -334,9 +377,9 @@ const Payments = () => {
           <div className="divide-y divide-[#F0EFE9] md:hidden">
             {payments.length > 0 ? (
               payments.map((payment) => {
-                const tenantName =
-                  payment.tenant?.name || "Unknown Tenant";
+                const tenantName = payment.tenant?.name || "Unknown Tenant";
                 const isPaid = payment.status === "paid";
+                const paidAt = getPaidDateTime(payment);
 
                 return (
                   <div key={payment._id} className="p-3.5">
@@ -369,7 +412,7 @@ const Payments = () => {
                       </span>
                     </div>
 
-                    <div className="mt-3 grid grid-cols-2 gap-2 rounded-lg bg-[#F7F8F5] p-3">
+                    <div className="mt-3 grid grid-cols-2 gap-3 rounded-lg bg-[#F7F8F5] p-3">
                       <div>
                         <p className="text-[9px] font-bold uppercase tracking-wider text-[#89938A]">
                           Billing Month
@@ -387,6 +430,16 @@ const Payments = () => {
                         <p className="mt-1 flex items-center gap-1 text-xs font-bold text-[#242B26]">
                           <IndianRupee size={13} />
                           {formatAmount(payment.amount)}
+                        </p>
+                      </div>
+
+                      <div className="col-span-2 border-t border-[#E6E3D9] pt-3">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-[#89938A]">
+                          Paid On
+                        </p>
+                        <p className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-[#526056]">
+                          <Clock3 size={13} className="text-[#527C61]" />
+                          {paidAt ? `${paidAt.date}, ${paidAt.time}` : "—"}
                         </p>
                       </div>
                     </div>
