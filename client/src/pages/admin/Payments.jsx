@@ -1,4 +1,3 @@
-
 import React, { useEffect, useMemo, useState } from "react";
 import api from "../../api/axios.js";
 
@@ -49,6 +48,20 @@ const Payments = () => {
   const formatAmount = (amount) =>
     Number(amount || 0).toLocaleString("en-IN");
 
+  // Billing month the rent is FOR (not when the payment was made)
+  const getRentMonth = (pay) => {
+    const date =
+      pay.month && pay.year
+        ? new Date(Number(pay.year), Number(pay.month) - 1)
+        : new Date(pay.createdAt); // fallback for very old records
+
+    return date.toLocaleString("en-US", {
+      month: "long",
+      year: "numeric",
+    });
+  };
+
+  // Date the transaction happened
   const getPaymentDate = (pay) =>
     pay.paidAt ? new Date(pay.paidAt) : new Date(pay.createdAt);
 
@@ -112,7 +125,7 @@ const Payments = () => {
               </h1>
 
               <p className="text-xs sm:text-sm text-[#D6E2D7] mt-1">
-                Monitor rental payments and transaction activity.
+                Monitor rental payments and see which month each one covers.
               </p>
             </div>
 
@@ -189,10 +202,7 @@ const Payments = () => {
                     {/* TENANT AND STATUS */}
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0">
-                        <Avatar
-                          name={pay.tenant?.name}
-                          fallback="T"
-                        />
+                        <Avatar name={pay.tenant?.name} fallback="T" />
 
                         <div className="min-w-0">
                           <p className="text-xs font-bold text-[#303B32] truncate">
@@ -214,15 +224,27 @@ const Payments = () => {
                       </span>
                     </div>
 
-                    {/* AMOUNT */}
-                    <div className="mt-3 px-3 py-2.5 rounded-lg bg-[#F7F8F5]">
-                      <p className="text-[10px] uppercase tracking-wide text-[#8A958B]">
-                        Payment Amount
-                      </p>
+                    {/* AMOUNT + RENT MONTH */}
+                    <div className="mt-3 px-3 py-2.5 rounded-lg bg-[#F7F8F5] flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wide text-[#8A958B]">
+                          Payment Amount
+                        </p>
 
-                      <p className="text-xl font-bold text-[#244B3C] mt-0.5">
-                        ₹{formatAmount(pay.amount)}
-                      </p>
+                        <p className="text-xl font-bold text-[#244B3C] mt-0.5">
+                          ₹{formatAmount(pay.amount)}
+                        </p>
+                      </div>
+
+                      <div className="text-right">
+                        <p className="text-[10px] uppercase tracking-wide text-[#8A958B]">
+                          Rent For
+                        </p>
+
+                        <p className="text-sm font-bold text-[#303B32] mt-0.5">
+                          {getRentMonth(pay)}
+                        </p>
+                      </div>
                     </div>
 
                     {/* DETAILS */}
@@ -252,7 +274,7 @@ const Payments = () => {
                     {/* DATE */}
                     <div className="mt-3 pt-2.5 border-t border-[#EEEDE7] flex items-center justify-between gap-2">
                       <span className="text-[10px] text-[#8A958B]">
-                        Transaction Date
+                        {isPaid ? "Paid On" : "Initiated On"}
                       </span>
 
                       <span className="text-xs font-medium text-[#526056]">
@@ -264,22 +286,6 @@ const Payments = () => {
                       </span>
                     </div>
 
-                    {/* ACTIONS */}
-                    <div className="flex gap-2 mt-3">
-                      <button
-                        type="button"
-                        className="flex-1 py-2 rounded-lg bg-[#EAF0E8] text-[#244B3C] font-semibold text-xs hover:bg-[#DCE8DC] transition"
-                      >
-                        View
-                      </button>
-
-                      <button
-                        type="button"
-                        className="flex-1 py-2 rounded-lg bg-[#EAF2E9] text-[#527C61] font-semibold text-xs hover:bg-[#DCE8DC] transition"
-                      >
-                        Receipt
-                      </button>
-                    </div>
                   </div>
                 );
               })}
@@ -319,16 +325,14 @@ const Payments = () => {
                         "Tenant",
                         "Property",
                         "Landlord",
+                        "Rent For",
                         "Amount",
                         "Status",
                         "Date",
-                        "Actions",
                       ].map((heading) => (
                         <th
                           key={heading}
-                          className={`px-4 py-3 text-[10px] font-semibold text-[#68756A] uppercase tracking-wider ${
-                            heading === "Actions" ? "text-right" : ""
-                          }`}
+                          className="px-4 py-3 text-[10px] font-semibold text-[#68756A] uppercase tracking-wider"
                         >
                           {heading}
                         </th>
@@ -349,10 +353,7 @@ const Payments = () => {
                           {/* TENANT */}
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2">
-                              <Avatar
-                                name={pay.tenant?.name}
-                                fallback="T"
-                              />
+                              <Avatar name={pay.tenant?.name} fallback="T" />
 
                               <div className="min-w-0">
                                 <p className="text-xs font-semibold text-[#303B32]">
@@ -389,6 +390,16 @@ const Payments = () => {
                             </div>
                           </td>
 
+                          {/* RENT FOR (BILLING MONTH) */}
+                          <td className="px-4 py-3">
+                            <p className="text-xs font-bold text-[#303B32] whitespace-nowrap">
+                              {getRentMonth(pay)}
+                            </p>
+                            <p className="text-[10px] text-[#8A958B] mt-0.5">
+                              Monthly rent
+                            </p>
+                          </td>
+
                           {/* AMOUNT */}
                           <td className="px-4 py-3">
                             <p className="text-xs font-bold text-[#244B3C]">
@@ -421,30 +432,12 @@ const Payments = () => {
                               })}
                             </p>
                             <p className="text-[10px] text-[#8A958B] mt-0.5">
+                              {isPaid ? "Paid" : "Initiated"} ·{" "}
                               {paymentDate.toLocaleTimeString("en-IN", {
                                 hour: "2-digit",
                                 minute: "2-digit",
                               })}
                             </p>
-                          </td>
-
-                          {/* ACTIONS */}
-                          <td className="px-4 py-3">
-                            <div className="flex justify-end gap-2">
-                              <button
-                                type="button"
-                                className="px-3 py-1.5 rounded-lg bg-[#EAF0E8] text-[#244B3C] text-xs font-semibold hover:bg-[#DCE8DC] transition"
-                              >
-                                View
-                              </button>
-
-                              <button
-                                type="button"
-                                className="px-3 py-1.5 rounded-lg bg-[#EAF2E9] text-[#527C61] text-xs font-semibold hover:bg-[#DCE8DC] transition"
-                              >
-                                Receipt
-                              </button>
-                            </div>
                           </td>
                         </tr>
                       );
